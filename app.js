@@ -225,11 +225,13 @@ function loadFichas() {
             const req = store.getAll();
             req.onsuccess = () => resolve(req.result || []);
             req.onerror = () => {
-                try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
+                try { resolve(JSON.parse(localStorage.getItem(STORAGE_KEY)) || []); } catch { resolve([]); }
             };
         });
     }
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
+    return Promise.resolve().then(() => {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
+    });
 }
 
 function saveFichas(fichas) {
@@ -531,12 +533,11 @@ function fillForm(f) {
 
 function getFormData() {
     const reporteRadio = fichaForm.querySelector('input[name="reporteConcluyente"]:checked');
-    const isNew = !fichaIdInput.value;
     return {
         id: fichaIdInput.value || generateId(),
         semaforo: semaforoColor.value,
         tipoEmergencia: $('#tipoEmergencia').value.trim(),
-        registroNum: isNew ? (getNextRegistroNum()) : ($('#registroNum').value || getNextRegistroNum()),
+        registroNum: parseInt($('#registroNum').value, 10) || 1,
         sector: $('#sector').value.trim(),
         calle: $('#calle').value.trim(),
         fechaVisita: $('#fechaVisita').value,
