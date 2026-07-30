@@ -11,7 +11,31 @@
 </head>
 <body>
 
-<div class="app-container">
+<!-- ============ LOGIN SCREEN ============ -->
+<div class="login-screen" id="loginScreen">
+    <div class="login-card">
+        <div class="login-logo">
+            <div class="brand-icon" style="width:56px;height:56px;font-size:1.2rem;">EM</div>
+        </div>
+        <h1>Fichas de Emergencia</h1>
+        <p class="login-subtitle">Ingenieria Municipal - Concepcion</p>
+        <form id="loginForm" autocomplete="off">
+            <div class="form-group">
+                <label for="loginUser">Usuario</label>
+                <input type="text" id="loginUser" placeholder="Ingrese su usuario" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="loginPass">Contrasena</label>
+                <input type="password" id="loginPass" placeholder="Ingrese su contrasena" required>
+            </div>
+            <div id="loginError" class="login-error" style="display:none;">Usuario o contrasena incorrectos</div>
+            <button type="submit" class="btn btn-primary login-btn">Iniciar Sesion</button>
+        </form>
+    </div>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div class="app-container" id="appContainer" style="display:none;">
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-brand">
@@ -21,7 +45,20 @@
                     <span class="brand-sub">Ingenieria Municipal</span>
                 </div>
             </div>
-            <button type="button" class="btn btn-primary btn-new" id="btnNewFicha">+ Nueva Ficha</button>
+            <button type="button" class="btn btn-primary btn-new" id="btnNewFicha" data-role="admin,creador">+ Nueva Ficha</button>
+        </div>
+
+        <div class="sidebar-user" id="sidebarUser">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div>
+                    <div class="user-name" id="userName">Usuario</div>
+                    <div class="user-role" id="userRole">Admin</div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnLogout" title="Cerrar sesion">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </button>
         </div>
 
         <div class="sidebar-controls">
@@ -44,15 +81,19 @@
         </div>
 
         <div class="sidebar-footer">
-            <button type="button" class="btn btn-ghost btn-sm" id="btnExportData" title="Exportar datos">
+            <button type="button" class="btn btn-ghost btn-sm" id="btnExportData" title="Exportar datos" data-role="admin">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Exportar
             </button>
-            <button type="button" class="btn btn-ghost btn-sm" id="btnImportData" title="Importar datos">
+            <button type="button" class="btn btn-ghost btn-sm" id="btnImportData" title="Importar datos" data-role="admin">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 Importar
             </button>
             <input type="file" id="importFileInput" accept=".json" style="display:none;">
+            <button type="button" class="btn btn-ghost btn-sm" id="btnManageUsers" title="Gestionar usuarios" data-role="admin">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                Usuarios
+            </button>
         </div>
     </aside>
 
@@ -73,7 +114,7 @@
                 <h2 id="formTitle">Nueva Ficha</h2>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" id="btnCancel">Cancelar</button>
-                    <button type="button" class="btn btn-success" id="btnSave">Guardar Ficha</button>
+                    <button type="button" class="btn btn-success" id="btnSave" data-role="admin,creador,editor">Guardar Ficha</button>
                 </div>
             </div>
 
@@ -283,9 +324,9 @@
                 <h2>Vista Previa de Ficha</h2>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" id="btnBackToList">Volver</button>
-                    <button type="button" class="btn btn-primary" id="btnEditFromView">Editar</button>
-                    <button type="button" class="btn btn-secondary" id="btnDuplicateFromView">Duplicar</button>
-                    <button type="button" class="btn btn-danger" id="btnDeleteFromView">Eliminar</button>
+                    <button type="button" class="btn btn-primary" id="btnEditFromView" data-role="admin,creador,editor">Editar</button>
+                    <button type="button" class="btn btn-secondary" id="btnDuplicateFromView" data-role="admin,creador">Duplicar</button>
+                    <button type="button" class="btn btn-danger" id="btnDeleteFromView" data-role="admin">Eliminar</button>
                     <button type="button" class="btn btn-success" id="btnExportPdf">Exportar PDF</button>
                 </div>
             </div>
@@ -294,7 +335,59 @@
     </main>
 </div>
 
+<!-- ============ USER MANAGEMENT MODAL ============ -->
+<div class="modal-overlay" id="userModal" style="display:none;">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Gestionar Usuarios</h3>
+            <button type="button" class="btn btn-ghost" id="btnCloseModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-form">
+                <h4>Agregar Usuario</h4>
+                <div class="modal-form-grid">
+                    <div class="form-group">
+                        <label for="newUserName">Nombre</label>
+                        <input type="text" id="newUserName" placeholder="Nombre completo">
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserLogin">Usuario</label>
+                        <input type="text" id="newUserLogin" placeholder="Nombre de usuario">
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserPass">Contrasena</label>
+                        <input type="password" id="newUserPass" placeholder="Contrasena">
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserRole">Perfil</label>
+                        <select id="newUserRole">
+                            <option value="editor">Editor (ver y editar informes)</option>
+                            <option value="creador">Creador (crear y editar informes)</option>
+                            <option value="admin">Administrador (control total)</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary" id="btnAddUser">Agregar Usuario</button>
+            </div>
+            <div class="users-list" id="usersList"></div>
+        </div>
+    </div>
+</div>
+
 <div class="overlay" id="overlay"></div>
+
+<!-- ============ CREDENTIALS MODAL ============ -->
+<div class="modal-overlay" id="credsModal" style="display:none;">
+    <div class="modal-card modal-sm">
+        <div class="modal-header">
+            <h3>Credenciales de Acceso</h3>
+            <button type="button" class="btn btn-ghost" id="btnCloseCredsModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="creds-table" id="credsTable"></div>
+        </div>
+    </div>
+</div>
 
 <script src="app.js"></script>
 </body>

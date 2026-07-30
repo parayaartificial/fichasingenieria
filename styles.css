@@ -50,6 +50,319 @@ body {
     height: 100vh;
 }
 
+/* ============ LOGIN SCREEN ============ */
+.login-screen {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, var(--primary-light) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.login-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: 40px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+    animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.login-logo { margin-bottom: 16px; }
+
+.login-card h1 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--gray-800);
+    margin-bottom: 2px;
+}
+
+.login-subtitle {
+    font-size: 0.8rem;
+    color: var(--gray-400);
+    margin-bottom: 24px;
+}
+
+.login-card .form-group {
+    text-align: left;
+    margin-bottom: 14px;
+}
+
+.login-card .form-group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    margin-bottom: 4px;
+    display: block;
+}
+
+.login-card .form-group input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: var(--transition);
+    background: var(--gray-50);
+}
+
+.login-card .form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(0,71,148,0.1);
+}
+
+.login-error {
+    background: var(--rojo-light);
+    color: var(--rojo);
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-bottom: 12px;
+    border: 1px solid var(--rojo-bg);
+}
+
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+/* ============ USER SECTION ============ */
+.sidebar-user {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.user-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    line-height: 1.2;
+}
+
+.user-role {
+    font-size: 0.68rem;
+    color: var(--gray-400);
+    font-weight: 500;
+}
+
+/* ============ MODALS ============ */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 560px;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease;
+}
+
+.modal-card.modal-sm { max-width: 440px; }
+
+.modal-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-header h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--gray-800);
+}
+
+.modal-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+}
+
+.modal-form {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.modal-form h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 12px;
+}
+
+.modal-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.modal-form-grid .form-group input,
+.modal-form-grid .form-group select {
+    padding: 8px 10px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 0.82rem;
+    width: 100%;
+}
+
+.modal-form-grid .form-group select {
+    background: white;
+}
+
+.modal-form-grid .form-group input:focus,
+.modal-form-grid .form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.user-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    transition: var(--transition);
+}
+
+.user-row:hover { background: var(--gray-50); }
+
+.user-row-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary-lighter);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.user-row-info { flex: 1; }
+
+.user-row-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.user-row-login {
+    font-size: 0.7rem;
+    color: var(--gray-400);
+}
+
+.user-row-badge {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.68rem;
+    font-weight: 600;
+}
+
+.user-row-badge.admin { background: var(--rojo-bg); color: var(--rojo); }
+.user-row-badge.creador { background: var(--verde-bg); color: var(--verde); }
+.user-row-badge.editor { background: var(--amarillo-bg); color: var(--amarillo); }
+
+.user-row .btn-remove-item {
+    width: 28px;
+    height: 28px;
+    font-size: 0.85rem;
+}
+
+/* Credentials table */
+.creds-table {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.creds-item {
+    padding: 10px 14px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+}
+
+.creds-item strong { font-size: 0.82rem; color: var(--gray-700); }
+.creds-item code {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--gray-100);
+    border-radius: var(--radius-sm);
+    font-size: 0.78rem;
+    color: var(--gray-600);
+    margin: 0 2px;
+}
+
 /* ============ LAYOUT ============ */
 .app-container {
     display: flex;

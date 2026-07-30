@@ -54,6 +54,151 @@ let currentFilter = 'all';
 let currentSearch = '';
 let currentImagesAntes = [];
 let currentImagesDespues = [];
+let currentUser = null;
+
+// ============ AUTH SYSTEM ============
+const USERS_KEY = 'fichas_users';
+const SESSION_KEY = 'fichas_session';
+
+const ROLE_LABELS = { admin: 'Administrador', creador: 'Creador', editor: 'Editor' };
+
+function hashPassword(pass) {
+    let hash = 0;
+    for (let i = 0; i < pass.length; i++) {
+        const char = pass.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return 'h_' + Math.abs(hash).toString(36);
+}
+
+function getUsers() {
+    try { return JSON.parse(localStorage.getItem(USERS_KEY)) || []; } catch { return []; }
+}
+
+function saveUsers(users) {
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+function initDefaultUsers() {
+    const users = getUsers();
+    if (users.length === 0) {
+        saveUsers([
+            { login: 'admin', pass: hashPassword('admin123'), name: 'Administrador', role: 'admin' },
+            { login: 'creador', pass: hashPassword('creador123'), name: 'Creador de Informes', role: 'creador' },
+            { login: 'editor', pass: hashPassword('editor123'), name: 'Editor de Informes', role: 'editor' }
+        ]);
+    }
+}
+
+function loginUser(login, pass) {
+    const users = getUsers();
+    const user = users.find(u => u.login === login && u.pass === hashPassword(pass));
+    if (user) {
+        currentUser = { login: user.login, name: user.name, role: user.role };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+        return true;
+    }
+    return false;
+}
+
+function logoutUser() {
+    currentUser = null;
+    localStorage.removeItem(SESSION_KEY);
+}
+
+function checkSession() {
+    try {
+        const session = JSON.parse(localStorage.getItem(SESSION_KEY));
+        if (session && session.login && session.role) {
+            currentUser = session;
+            return true;
+        }
+    } catch {}
+    return false;
+}
+
+function hasRole(roles) {
+    if (!currentUser) return false;
+    if (typeof roles === 'string') roles = roles.split(',');
+    return roles.includes(currentUser.role);
+}
+
+function applyRoleRestrictions() {
+    $$('[data-role]').forEach(el => {
+        const allowedRoles = el.dataset.role.split(',');
+        if (allowedRoles.includes(currentUser.role)) {
+            el.style.display = '';
+        } else {
+            el.style.display = 'none';
+        }
+    });
+}
+
+function showLoginScreen() {
+    $('#loginScreen').style.display = '';
+    $('#appContainer').style.display = 'none';
+}
+
+function showApp() {
+    $('#loginScreen').style.display = 'none';
+    $('#appContainer').style.display = '';
+    $('#userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+    $('#userName').textContent = currentUser.name;
+    $('#userRole').textContent = ROLE_LABELS[currentUser.role] || currentUser.role;
+    applyRoleRestrictions();
+    renderDashboard();
+    renderFichasList();
+}
+
+function renderUsersList() {
+    const users = getUsers();
+    const list = $('#usersList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    users.forEach(u => {
+        const row = document.createElement('div');
+        row.className = 'user-row';
+        const isDefault = ['admin', 'creador', 'editor'].includes(u.login);
+        row.innerHTML =
+            '<div class="user-row-avatar">' + u.name.charAt(0).toUpperCase() + '</div>' +
+            '<div class="user-row-info">' +
+                '<div class="user-row-name">' + escapeHtml(u.name) + '</div>' +
+                '<div class="user-row-login">@' + escapeHtml(u.login) + '</div>' +
+            '</div>' +
+            '<span class="user-row-badge ' + u.role + '">' + (ROLE_LABELS[u.role] || u.role) + '</span>' +
+            (!isDefault ? '<button type="button" class="btn-remove-item" data-login="' + escapeHtml(u.login) + '">&times;</button>' : '');
+
+        const removeBtn = row.querySelector('.btn-remove-item');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => {
+                if (!confirm('Eliminar usuario ' + u.login + '?')) return;
+                const filtered = getUsers().filter(x => x.login !== u.login);
+                saveUsers(filtered);
+                renderUsersList();
+            });
+        }
+
+        list.appendChild(row);
+    });
+}
+
+function renderCredentials() {
+    const users = getUsers();
+    const table = $('#credsTable');
+    if (!table) return;
+    table.innerHTML = '';
+    users.forEach(u => {
+        const item = document.createElement('div');
+        item.className = 'creds-item';
+        item.innerHTML =
+            '<strong>' + escapeHtml(u.name) + '</strong> (' + (ROLE_LABELS[u.role] || u.role) + ')<br>' +
+            'Usuario: <code>' + escapeHtml(u.login) + '</code> ' +
+            'Contrasena: <code>' + escapeHtml(u.login) + '123</code>';
+        table.appendChild(item);
+    });
+}
 
 // ============ INDEXEDDB ============
 let db = null;
@@ -1005,12 +1150,106 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
-// ============ INIT ============
-openDB().then(() => {
-    migrateLocalStorageToIndexedDB();
-    renderFichasList();
-    renderDashboard();
-}).catch(() => {
-    renderFichasList();
-    renderDashboard();
+// ============ AUTH EVENT LISTENERS ============
+$('#loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const login = $('#loginUser').value.trim();
+    const pass = $('#loginPass').value;
+    if (loginUser(login, pass)) {
+        openDB().then(() => {
+            migrateLocalStorageToIndexedDB();
+            showApp();
+        }).catch(() => { showApp(); });
+    } else {
+        $('#loginError').style.display = '';
+        $('#loginPass').value = '';
+        $('#loginPass').focus();
+    }
 });
+
+$('#btnLogout').addEventListener('click', () => {
+    if (!confirm('Cerrar sesion?')) return;
+    logoutUser();
+    showLoginScreen();
+});
+
+// User management modal
+const btnManageUsers = $('#btnManageUsers');
+const userModal = $('#userModal');
+const btnCloseModal = $('#btnCloseModal');
+const btnAddUser = $('#btnAddUser');
+
+if (btnManageUsers) {
+    btnManageUsers.addEventListener('click', () => {
+        userModal.style.display = '';
+        renderUsersList();
+    });
+}
+
+if (btnCloseModal) {
+    btnCloseModal.addEventListener('click', () => { userModal.style.display = 'none'; });
+}
+
+if (userModal) {
+    userModal.addEventListener('click', (e) => {
+        if (e.target === userModal) userModal.style.display = 'none';
+    });
+}
+
+if (btnAddUser) {
+    btnAddUser.addEventListener('click', () => {
+        const name = $('#newUserName').value.trim();
+        const login = $('#newUserLogin').value.trim().toLowerCase();
+        const pass = $('#newUserPass').value;
+        const role = $('#newUserRole').value;
+
+        if (!name || !login || !pass) {
+            alert('Todos los campos son obligatorios.');
+            return;
+        }
+
+        const users = getUsers();
+        if (users.find(u => u.login === login)) {
+            alert('El usuario "' + login + '" ya existe.');
+            return;
+        }
+
+        users.push({ login, pass: hashPassword(pass), name, role });
+        saveUsers(users);
+        renderUsersList();
+        $('#newUserName').value = '';
+        $('#newUserLogin').value = '';
+        $('#newUserPass').value = '';
+        alert('Usuario "' + name + '" agregado correctamente.');
+    });
+}
+
+// Credentials modal
+const btnShowCreds = document.createElement('button');
+btnShowCreds.type = 'button';
+btnShowCreds.className = 'btn btn-ghost btn-sm';
+btnShowCreds.id = 'btnShowCreds';
+btnShowCreds.title = 'Ver credenciales';
+btnShowCreds.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Credenciales';
+btnShowCreds.addEventListener('click', () => {
+    renderCredentials();
+    $('#credsModal').style.display = '';
+});
+
+$('#btnCloseCredsModal').addEventListener('click', () => { $('#credsModal').style.display = 'none'; });
+$('#credsModal').addEventListener('click', (e) => { if (e.target === $('#credsModal')) $('#credsModal').style.display = 'none'; });
+
+// Add credentials button to sidebar footer
+const sidebarFooter = $('.sidebar-footer');
+if (sidebarFooter) sidebarFooter.appendChild(btnShowCreds);
+
+// ============ INIT ============
+initDefaultUsers();
+if (checkSession()) {
+    openDB().then(() => {
+        migrateLocalStorageToIndexedDB();
+        showApp();
+    }).catch(() => { showApp(); });
+} else {
+    showLoginScreen();
+}
