@@ -236,10 +236,14 @@ function loadFichas() {
 
 function saveFichas(fichas) {
     if (db) {
-        const tx = db.transaction(DB_STORE, 'readwrite');
-        const store = tx.objectStore(DB_STORE);
-        store.clear();
-        fichas.forEach(f => store.put(f));
+        try {
+            const tx = db.transaction(DB_STORE, 'readwrite');
+            const store = tx.objectStore(DB_STORE);
+            store.clear();
+            fichas.forEach(f => store.put(f));
+        } catch (e) {
+            console.warn('Error guardando en IndexedDB, usando solo localStorage:', e);
+        }
     }
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(fichas));
@@ -971,9 +975,13 @@ btnSave.addEventListener('click', () => {
             saveFichas(fichas);
             renderFichasList();
             viewFicha(data.id);
+        }).catch(e => {
+            console.error('Error guardando ficha:', e);
+            alert('Error al guardar: ' + (e.message || 'Error desconocido'));
         });
     } catch (e) {
         console.error('Error guardando ficha:', e);
+        alert('Error al guardar: ' + (e.message || 'Error desconocido'));
     }
 });
 
