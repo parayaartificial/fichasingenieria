@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fichas de Emergencia - Ingenieria Municipal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
@@ -12,19 +14,58 @@
 <div class="app-container">
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h2>Fichas de Emergencia</h2>
+            <div class="sidebar-brand">
+                <div class="brand-icon">EM</div>
+                <div>
+                    <h2>Fichas de Emergencia</h2>
+                    <span class="brand-sub">Ingenieria Municipal</span>
+                </div>
+            </div>
             <button type="button" class="btn btn-primary btn-new" id="btnNewFicha">+ Nueva Ficha</button>
         </div>
+
+        <div class="sidebar-controls">
+            <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="searchInput" placeholder="Buscar por sector, calle, nombre...">
+            </div>
+            <div class="filter-buttons">
+                <button type="button" class="filter-btn active" data-filter="all">Todas</button>
+                <button type="button" class="filter-btn" data-filter="verde"><span class="filter-dot verde"></span>Verde</button>
+                <button type="button" class="filter-btn" data-filter="amarillo"><span class="filter-dot amarillo"></span>Amarillo</button>
+                <button type="button" class="filter-btn" data-filter="rojo"><span class="filter-dot rojo"></span>Rojo</button>
+            </div>
+        </div>
+
+        <div class="sidebar-stats" id="sidebarStats"></div>
+
         <div class="fichas-list" id="fichasList">
             <p class="empty-msg" id="emptyMsg">No hay fichas registradas</p>
+        </div>
+
+        <div class="sidebar-footer">
+            <button type="button" class="btn btn-ghost btn-sm" id="btnExportData" title="Exportar datos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Exportar
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnImportData" title="Importar datos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Importar
+            </button>
+            <input type="file" id="importFileInput" accept=".json" style="display:none;">
         </div>
     </aside>
 
     <main class="main-panel" id="mainPanel">
+        <div class="mobile-header" id="mobileHeader">
+            <button type="button" class="btn btn-ghost" id="btnToggleSidebar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <span class="mobile-title">Fichas de Emergencia</span>
+        </div>
+
         <div class="empty-state" id="emptyState">
-            <div class="empty-icon">&#128269;</div>
-            <h3>Seleccione una ficha o cree una nueva</h3>
-            <p>Use el boton "+ Nueva Ficha" para comenzar</p>
+            <div class="dashboard-container" id="dashboardContainer"></div>
         </div>
 
         <div class="form-container" id="formContainer" style="display:none;">
@@ -67,7 +108,7 @@
                         </div>
                         <div class="form-group">
                             <label for="registroNum">Registro N&ordm;</label>
-                            <input type="number" id="registroNum" min="1" readonly style="background:#f0f0f0;">
+                            <input type="number" id="registroNum" min="1" readonly>
                         </div>
                     </div>
                 </section>
@@ -76,8 +117,8 @@
                     <h3>Ubicacion</h3>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="sector">Sector</label>
-                            <input type="text" id="sector" placeholder="Nombre del sector">
+                            <label for="sector">Sector <span class="required">*</span></label>
+                            <input type="text" id="sector" placeholder="Nombre del sector" required>
                         </div>
                         <div class="form-group">
                             <label for="calle">Calle</label>
@@ -122,10 +163,10 @@
                                     <input type="radio" name="reporteConcluyente" value="HABITABLE"> HABITABLE
                                 </label>
                                 <label class="radio-label">
-                                    <input type="radio" name="reporteConcluyente" value="HABITABLE CON TRABAJOS DE MITIGACION"> HABITABLE CON TRABAJOS DE MITIGACION
+                                    <input type="radio" name="reporteConcluyente" value="HABITABLE CON TRABAJOS DE MITIGACION"> HABITABLE CON MITIGACION
                                 </label>
                                 <label class="radio-label">
-                                    <input type="radio" name="reporteConcluyente" value="INHABITABLE. EVACUAR, NO RECUPERABLE"> INHABITABLE. EVACUAR, NO RECUPERABLE
+                                    <input type="radio" name="reporteConcluyente" value="INHABITABLE. EVACUAR, NO RECUPERABLE"> INHABITABLE
                                 </label>
                             </div>
                         </div>
@@ -164,15 +205,24 @@
                     <button type="button" class="btn btn-add" id="btnAddRecomendacion">+ Agregar recomendacion</button>
                 </section>
 
-                                <section class="form-section">
-                    <h3>Evidencia Fotografica</h3>
+                <section class="form-section">
+                    <h3>Evidencia Fotografica - Antes de la Visita</h3>
                     <div class="form-group full-width">
-                        <label for="imageUpload">Subir imagenes de evidencia</label>
-                        <input type="file" id="imageUpload" accept="image/*" multiple style="display:none;">
-                        <button type="button" class="btn btn-add" id="btnUploadImage">+ Seleccionar imagenes</button>
-                        <span class="storage-info" id="storageInfo"></span>
+                        <input type="file" id="imageUploadAntes" accept="image/*" multiple style="display:none;">
+                        <button type="button" class="btn btn-add" id="btnUploadImageAntes">+ Seleccionar imagenes</button>
+                        <span class="storage-info" id="storageInfoAntes"></span>
                     </div>
-                    <div id="imagePreviewList" class="image-preview-grid"></div>
+                    <div id="imagePreviewListAntes" class="image-preview-grid"></div>
+                </section>
+
+                <section class="form-section">
+                    <h3>Evidencia Fotografica - Despues de la Visita</h3>
+                    <div class="form-group full-width">
+                        <input type="file" id="imageUploadDespues" accept="image/*" multiple style="display:none;">
+                        <button type="button" class="btn btn-add" id="btnUploadImageDespues">+ Seleccionar imagenes</button>
+                        <span class="storage-info" id="storageInfoDespues"></span>
+                    </div>
+                    <div id="imagePreviewListDespues" class="image-preview-grid"></div>
                 </section>
 
                 <section class="form-section">
@@ -232,8 +282,9 @@
             <div class="form-header">
                 <h2>Vista Previa de Ficha</h2>
                 <div class="form-actions">
-<button type="button" class="btn btn-secondary" id="btnBackToList">Volver</button>
+                    <button type="button" class="btn btn-secondary" id="btnBackToList">Volver</button>
                     <button type="button" class="btn btn-primary" id="btnEditFromView">Editar</button>
+                    <button type="button" class="btn btn-secondary" id="btnDuplicateFromView">Duplicar</button>
                     <button type="button" class="btn btn-danger" id="btnDeleteFromView">Eliminar</button>
                     <button type="button" class="btn btn-success" id="btnExportPdf">Exportar PDF</button>
                 </div>
@@ -243,8 +294,8 @@
     </main>
 </div>
 
+<div class="overlay" id="overlay"></div>
+
 <script src="app.js"></script>
 </body>
 </html>
-
-
