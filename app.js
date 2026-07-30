@@ -1,5 +1,5 @@
 // ============================================
-// FICHA EMERGENCIA - APP LOGIC v2
+// INFORMES EMERGENCIA - APP LOGIC v4
 // ============================================
 
 const STORAGE_KEY = 'fichas_emergencia';
@@ -14,13 +14,13 @@ const FONDO_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABLAAAAKjCAYAAAA
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
-const fichasList = $('#fichasList');
+const fichasList = $('#informesList');
 const emptyState = $('#emptyState');
 const formContainer = $('#formContainer');
 const viewContainer = $('#viewContainer');
 const formTitle = $('#formTitle');
-const fichaForm = $('#fichaForm');
-const fichaIdInput = $('#fichaId');
+const fichaForm = $('#informeForm');
+const fichaIdInput = $('#informeId');
 const semaforoColor = $('#semaforoColor');
 const pdfContent = $('#pdfContent');
 const searchInput = $('#searchInput');
@@ -28,7 +28,7 @@ const sidebarStats = $('#sidebarStats');
 const dashboardContainer = $('#dashboardContainer');
 const overlay = $('#overlay');
 
-const btnNewFicha = $('#btnNewFicha');
+const btnNewFicha = $('#btnNewInforme');
 const btnCancel = $('#btnCancel');
 const btnSave = $('#btnSave');
 const btnBackToList = $('#btnBackToList');
@@ -243,7 +243,7 @@ function saveFichas(fichas) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(fichas));
     } catch (e) {
         if (e.name === 'QuotaExceededError') {
-            alert('Error: No hay suficiente espacio. Intente eliminar imagenes o fichas antiguas.');
+            alert('Error: No hay suficiente espacio. Intente eliminar imagenes o informes antiguas.');
         }
         throw e;
     }
@@ -298,7 +298,7 @@ function renderFichasList() {
         renderSidebarStats(fichas);
 
         if (filtered.length === 0) {
-            fichasList.innerHTML = '<p class="empty-msg">' + (fichas.length === 0 ? 'No hay fichas registradas' : 'No se encontraron resultados') + '</p>';
+            fichasList.innerHTML = '<p class="empty-msg">' + (fichas.length === 0 ? 'No hay informes registradas' : 'No se encontraron resultados') + '</p>';
             return;
         }
 
@@ -374,14 +374,14 @@ function renderDashboard() {
         dashboardContainer.innerHTML =
             '<div class="dash-header">' +
                 '<h1>Panel de Control</h1>' +
-                '<p>Resumen de fichas de emergencia registradas</p>' +
+                '<p>Resumen de informes de emergencia registradas</p>' +
             '</div>' +
 
             '<div class="dash-kpi-grid">' +
                 '<div class="dash-kpi">' +
                     '<div class="dash-kpi-icon total">&#128203;</div>' +
                     '<div class="dash-kpi-value">' + total + '</div>' +
-                    '<div class="dash-kpi-label">Total Fichas</div>' +
+                    '<div class="dash-kpi-label">Total Informes</div>' +
                     '<div class="dash-kpi-bar total"></div>' +
                 '</div>' +
                 '<div class="dash-kpi">' +
@@ -429,9 +429,9 @@ function renderDashboard() {
                 '</div>' +
 
                 '<div class="dash-section">' +
-                    '<div class="dash-section-header"><span class="dash-section-title">Ultimas Fichas</span></div>' +
+                    '<div class="dash-section-header"><span class="dash-section-title">Ultimos Informes</span></div>' +
                     '<div class="dash-section-body" style="padding:8px 20px;">' +
-                        (recentHtml || '<p class="empty-msg">Sin fichas recientes</p>') +
+                        (recentHtml || '<p class="empty-msg">Sin informes recientes</p>') +
                     '</div>' +
                 '</div>' +
 
@@ -439,8 +439,8 @@ function renderDashboard() {
             ) : (
                 '<div class="dash-section"><div class="dash-section-body" style="text-align:center;padding:40px;">' +
                     '<div style="font-size:2rem;margin-bottom:8px;">&#128203;</div>' +
-                    '<h3 style="color:var(--gray-600);margin-bottom:4px;">Sin fichas registradas</h3>' +
-                    '<p style="color:var(--gray-400);font-size:0.85rem;">Haga clic en "+ Nueva Ficha" para comenzar</p>' +
+                    '<h3 style="color:var(--gray-600);margin-bottom:4px;">Sin informes registradas</h3>' +
+                    '<p style="color:var(--gray-400);font-size:0.85rem;">Haga clic en "+ Nueva Informe" para comenzar</p>' +
                 '</div></div>'
             ));
 
@@ -460,11 +460,11 @@ function showForm(ficha) {
     formContainer.style.animation = 'fadeSlideIn 0.3s ease';
 
     if (ficha) {
-        formTitle.textContent = 'Editar Ficha';
+        formTitle.textContent = 'Editar Informe';
         fichaIdInput.value = ficha.id;
         fillForm(ficha);
     } else {
-        formTitle.textContent = 'Nueva Ficha';
+        formTitle.textContent = 'Nueva Informe';
         fichaForm.reset();
         fichaIdInput.value = '';
         selectSemaforo('');
@@ -905,7 +905,7 @@ btnDuplicateFromView.addEventListener('click', () => {
         });
 
         showForm(duplicate);
-        formTitle.textContent = 'Duplicar Ficha';
+        formTitle.textContent = 'Duplicar Informe';
     });
 });
 
@@ -1035,7 +1035,7 @@ btnExportPdf.addEventListener('click', () => {
     generatePdfFilename().then(filename => {
         const opt = {
             margin: [10, 10, 10, 10],
-            filename: 'Ficha_Emergencia_' + filename + '.pdf',
+            filename: 'Informe_Emergencia_' + filename + '.pdf',
             image: { type: 'jpeg', quality: 0.80 },
             html2canvas: { scale: 1.5, useCORS: true, allowTaint: true, logging: false },
             jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }

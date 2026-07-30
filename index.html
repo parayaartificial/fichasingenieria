@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fichas de Emergencia - Ingenieria Municipal</title>
+    <title>Informes de Emergencia - Ingenieria Municipal</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
@@ -17,7 +17,7 @@
         <div class="login-logo">
             <div class="brand-icon" style="width:56px;height:56px;font-size:1.2rem;">EM</div>
         </div>
-        <h1>Fichas de Emergencia</h1>
+        <h1>Informes de Emergencia</h1>
         <p class="login-subtitle">Ingenieria Municipal - Concepcion</p>
         <form id="loginForm" autocomplete="off">
             <div class="form-group">
@@ -41,11 +41,11 @@
             <div class="sidebar-brand">
                 <div class="brand-icon">EM</div>
                 <div>
-                    <h2>Fichas de Emergencia</h2>
+                    <h2>Informes de Emergencia</h2>
                     <span class="brand-sub">Ingenieria Municipal</span>
                 </div>
             </div>
-            <button type="button" class="btn btn-primary btn-new" id="btnNewFicha" data-role="admin,creador">+ Nueva Ficha</button>
+            <button type="button" class="btn btn-primary btn-new" id="btnNewInforme" data-role="admin,creador">+ Nueva Informe</button>
         </div>
 
         <div class="sidebar-user" id="sidebarUser">
@@ -76,8 +76,8 @@
 
         <div class="sidebar-stats" id="sidebarStats"></div>
 
-        <div class="fichas-list" id="fichasList">
-            <p class="empty-msg" id="emptyMsg">No hay fichas registradas</p>
+        <div class="informes-list" id="informesList">
+            <p class="empty-msg" id="emptyMsg">No hay informes registradas</p>
         </div>
 
         <div class="sidebar-footer">
@@ -102,7 +102,7 @@
             <button type="button" class="btn btn-ghost" id="btnToggleSidebar">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
-            <span class="mobile-title">Fichas de Emergencia</span>
+            <span class="mobile-title">Informes de Emergencia</span>
         </div>
 
         <div class="empty-state" id="emptyState">
@@ -111,18 +111,18 @@
 
         <div class="form-container" id="formContainer" style="display:none;">
             <div class="form-header">
-                <h2 id="formTitle">Nueva Ficha</h2>
+                <h2 id="formTitle">Nueva Informe</h2>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" id="btnCancel">Cancelar</button>
-                    <button type="button" class="btn btn-success" id="btnSave" data-role="admin,creador,editor">Guardar Ficha</button>
+                    <button type="button" class="btn btn-success" id="btnSave" data-role="admin,creador,editor">Guardar Informe</button>
                 </div>
             </div>
 
-            <form id="fichaForm" autocomplete="off">
-                <input type="hidden" id="fichaId" value="">
+            <form id="informeForm" autocomplete="off">
+                <input type="hidden" id="informeId" value="">
 
                 <div class="semaforo-selector">
-                    <label>Tipo de Ficha (Semaforo):</label>
+                    <label>Tipo de Informe (Semaforo):</label>
                     <div class="semaforo-buttons">
                         <button type="button" class="semaforo-btn" data-color="verde" title="Verde - Habitable">
                             <span class="semaforo-circle verde"></span>
@@ -321,7 +321,7 @@
 
         <div class="view-container" id="viewContainer" style="display:none;">
             <div class="form-header">
-                <h2>Vista Previa de Ficha</h2>
+                <h2>Vista Previa de Informe</h2>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" id="btnBackToList">Volver</button>
                     <button type="button" class="btn btn-primary" id="btnEditFromView" data-role="admin,creador,editor">Editar</button>

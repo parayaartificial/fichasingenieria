@@ -1,5 +1,5 @@
 /* ============================================
-   FICHA EMERGENCIA - ESTILOS PROFESIONALES v2
+   INFORMES EMERGENCIA - ESTILOS PROFESIONALES v4
    ============================================ */
 
 :root {
@@ -545,17 +545,17 @@ body {
 .stat-mini.rojo { background: var(--rojo-bg); color: #9b2c2c; }
 
 /* Fichas List */
-.fichas-list {
+.informes-list {
     flex: 1;
     overflow-y: auto;
     padding: 8px;
 }
 
-.fichas-list::-webkit-scrollbar { width: 5px; }
-.fichas-list::-webkit-scrollbar-track { background: transparent; }
-.fichas-list::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 10px; }
+.informes-list::-webkit-scrollbar { width: 5px; }
+.informes-list::-webkit-scrollbar-track { background: transparent; }
+.informes-list::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 10px; }
 
-.ficha-card {
+.informe-card {
     padding: 12px 14px;
     border-radius: var(--radius);
     cursor: pointer;
@@ -565,35 +565,35 @@ body {
     position: relative;
 }
 
-.ficha-card:hover {
+.informe-card:hover {
     background: var(--gray-50);
     border-color: var(--gray-200);
 }
 
-.ficha-card.active {
+.informe-card.active {
     background: var(--primary-lighter);
     border-color: var(--primary);
 }
 
-.ficha-card-header {
+.informe-card-header {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-bottom: 4px;
 }
 
-.ficha-card-dot {
+.informe-card-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
     flex-shrink: 0;
 }
 
-.ficha-card-dot.verde { background: var(--verde); }
-.ficha-card-dot.amarillo { background: var(--amarillo); }
-.ficha-card-dot.rojo { background: var(--rojo); }
+.informe-card-dot.verde { background: var(--verde); }
+.informe-card-dot.amarillo { background: var(--amarillo); }
+.informe-card-dot.rojo { background: var(--rojo); }
 
-.ficha-card-title {
+.informe-card-title {
     font-size: 0.82rem;
     font-weight: 600;
     color: var(--gray-700);
@@ -603,7 +603,7 @@ body {
     white-space: nowrap;
 }
 
-.ficha-card-meta {
+.informe-card-meta {
     font-size: 0.7rem;
     color: var(--gray-400);
     display: flex;
@@ -611,7 +611,7 @@ body {
     padding-left: 18px;
 }
 
-.ficha-card-reg {
+.informe-card-reg {
     font-weight: 600;
     color: var(--gray-500);
 }
@@ -1643,7 +1643,7 @@ select:focus-visible {
 @media (forced-colors: active) {
     .semaforo-circle { forced-color-adjust: none; }
     .filter-dot { forced-color-adjust: none; }
-    .ficha-card-dot { forced-color-adjust: none; }
+    .informe-card-dot { forced-color-adjust: none; }
     .user-avatar { forced-color-adjust: none; }
     .dash-kpi-bar { forced-color-adjust: none; }
 }
