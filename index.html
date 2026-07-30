@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fichas de Emergencia - Ingenieria Municipal</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+<div class="app-container">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Fichas de Emergencia</h2>
+            <button type="button" class="btn btn-primary btn-new" id="btnNewFicha">+ Nueva Ficha</button>
+        </div>
+        <div class="fichas-list" id="fichasList">
+            <p class="empty-msg" id="emptyMsg">No hay fichas registradas</p>
+        </div>
+    </aside>
+
+    <main class="main-panel" id="mainPanel">
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">&#128269;</div>
+            <h3>Seleccione una ficha o cree una nueva</h3>
+            <p>Use el boton "+ Nueva Ficha" para comenzar</p>
+        </div>
+
+        <div class="form-container" id="formContainer" style="display:none;">
+            <div class="form-header">
+                <h2 id="formTitle">Nueva Ficha</h2>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnCancel">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="btnSave">Guardar Ficha</button>
+                </div>
+            </div>
+
+            <form id="fichaForm" autocomplete="off">
+                <input type="hidden" id="fichaId" value="">
+
+                <div class="semaforo-selector">
+                    <label>Tipo de Ficha (Semaforo):</label>
+                    <div class="semaforo-buttons">
+                        <button type="button" class="semaforo-btn" data-color="verde" title="Verde - Habitable">
+                            <span class="semaforo-circle verde"></span>
+                            <span>Verde</span>
+                        </button>
+                        <button type="button" class="semaforo-btn" data-color="amarillo" title="Amarillo - Habitable con mitigacion">
+                            <span class="semaforo-circle amarillo"></span>
+                            <span>Amarillo</span>
+                        </button>
+                        <button type="button" class="semaforo-btn" data-color="rojo" title="Rojo - Inhabitable">
+                            <span class="semaforo-circle rojo"></span>
+                            <span>Rojo</span>
+                        </button>
+                    </div>
+                    <input type="hidden" id="semaforoColor" value="">
+                </div>
+
+                <section class="form-section">
+                    <h3>Datos de la Emergencia</h3>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="tipoEmergencia">Tipo de Emergencia</label>
+                            <input type="text" id="tipoEmergencia" placeholder="Ej: Deslizamiento de masa, Incendio, Inundacion...">
+                        </div>
+                        <div class="form-group">
+                            <label for="registroNum">Registro N&ordm;</label>
+                            <input type="number" id="registroNum" min="1" readonly style="background:#f0f0f0;">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h3>Ubicacion</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="sector">Sector</label>
+                            <input type="text" id="sector" placeholder="Nombre del sector">
+                        </div>
+                        <div class="form-group">
+                            <label for="calle">Calle</label>
+                            <input type="text" id="calle" placeholder="Direccion completa">
+                        </div>
+                        <div class="form-group">
+                            <label for="fechaVisita">Fecha de Visita</label>
+                            <input type="date" id="fechaVisita">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h3>Datos Personales</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="nombreAfectado">Nombre Afectado</label>
+                            <input type="text" id="nombreAfectado" placeholder="Nombre completo">
+                        </div>
+                        <div class="form-group">
+                            <label for="fono">Fono</label>
+                            <input type="text" id="fono" placeholder="Telefono de contacto">
+                        </div>
+                        <div class="form-group rojo-only" style="display:none;">
+                            <label for="rut">RUT</label>
+                            <input type="text" id="rut" placeholder="Ej: 12345678-9">
+                        </div>
+                        <div class="form-group rojo-only" style="display:none;">
+                            <label for="visitaCon">Visita Realizada Con</label>
+                            <input type="text" id="visitaCon" placeholder="Nombre del acompanante">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h3>Reporte Concluyente</h3>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label>Opcion seleccionada:</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="reporteConcluyente" value="HABITABLE"> HABITABLE
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="reporteConcluyente" value="HABITABLE CON TRABAJOS DE MITIGACION"> HABITABLE CON TRABAJOS DE MITIGACION
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="reporteConcluyente" value="INHABITABLE. EVACUAR, NO RECUPERABLE"> INHABITABLE. EVACUAR, NO RECUPERABLE
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="conclusion">Conclusion</label>
+                            <textarea id="conclusion" rows="3" placeholder="Resumen del reporte concluyente..."></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h3>Descripcion de la Emergencia</h3>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="descripcion">Ubicacion y Descripcion de la Emergencia</label>
+                            <textarea id="descripcion" rows="5" placeholder="Descripcion detallada de la emergencia..."></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h3>Causas Estimadas de la Emergencia</h3>
+                    <div id="causasList" class="dynamic-list"></div>
+                    <button type="button" class="btn btn-add" id="btnAddCausa">+ Agregar causa</button>
+                </section>
+
+                <section class="form-section">
+                    <h3>Condicion de Peligrosidad</h3>
+                    <div id="peligrosidadList" class="dynamic-list"></div>
+                    <button type="button" class="btn btn-add" id="btnAddPeligro">+ Agregar condicion</button>
+                </section>
+
+                <section class="form-section recomendaciones-section" id="recomendacionesSection">
+                    <h3>Recomendaciones Post Emergencia</h3>
+                    <div id="recomendacionesList" class="dynamic-list"></div>
+                    <button type="button" class="btn btn-add" id="btnAddRecomendacion">+ Agregar recomendacion</button>
+                </section>
+
+                                <section class="form-section">
+                    <h3>Evidencia Fotografica</h3>
+                    <div class="form-group full-width">
+                        <label for="imageUpload">Subir imagenes de evidencia</label>
+                        <input type="file" id="imageUpload" accept="image/*" multiple style="display:none;">
+                        <button type="button" class="btn btn-add" id="btnUploadImage">+ Seleccionar imagenes</button>
+                        <span class="storage-info" id="storageInfo"></span>
+                    </div>
+                    <div id="imagePreviewList" class="image-preview-grid"></div>
+                </section>
+
+                <section class="form-section">
+                    <h3>Firmas</h3>
+                    <div class="firmas-grid">
+                        <div class="firma-block">
+                            <h4>Firma 1</h4>
+                            <div class="form-group">
+                                <label for="firma1Nombre">Nombre</label>
+                                <input type="text" id="firma1Nombre" placeholder="Nombre completo">
+                            </div>
+                            <div class="form-group">
+                                <label for="firma1Cargo">Cargo</label>
+                                <input type="text" id="firma1Cargo" placeholder="Ej: Ingeniero Civil">
+                            </div>
+                            <div class="form-group">
+                                <label for="firma1Depto">Departamento</label>
+                                <input type="text" id="firma1Depto" placeholder="Ej: Subdireccion de Construcciones">
+                            </div>
+                        </div>
+                        <div class="firma-block">
+                            <h4>Firma 2</h4>
+                            <div class="form-group">
+                                <label for="firma2Nombre">Nombre</label>
+                                <input type="text" id="firma2Nombre" placeholder="Nombre completo">
+                            </div>
+                            <div class="form-group">
+                                <label for="firma2Cargo">Cargo</label>
+                                <input type="text" id="firma2Cargo" placeholder="Ej: Ingeniero Civil">
+                            </div>
+                            <div class="form-group">
+                                <label for="firma2Depto">Departamento</label>
+                                <input type="text" id="firma2Depto" placeholder="Ej: Subdireccion de Construcciones">
+                            </div>
+                        </div>
+                        <div class="firma-block">
+                            <h4>Firma 3</h4>
+                            <div class="form-group">
+                                <label for="firma3Nombre">Nombre</label>
+                                <input type="text" id="firma3Nombre" placeholder="Nombre completo">
+                            </div>
+                            <div class="form-group">
+                                <label for="firma3Cargo">Cargo</label>
+                                <input type="text" id="firma3Cargo" placeholder="Ej: Sub Director de Construcciones">
+                            </div>
+                            <div class="form-group">
+                                <label for="firma3Depto">Departamento</label>
+                                <input type="text" id="firma3Depto" placeholder="Ej: Subdireccion de Construcciones">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </form>
+        </div>
+
+        <div class="view-container" id="viewContainer" style="display:none;">
+            <div class="form-header">
+                <h2>Vista Previa de Ficha</h2>
+                <div class="form-actions">
+<button type="button" class="btn btn-secondary" id="btnBackToList">Volver</button>
+                    <button type="button" class="btn btn-primary" id="btnEditFromView">Editar</button>
+                    <button type="button" class="btn btn-danger" id="btnDeleteFromView">Eliminar</button>
+                    <button type="button" class="btn btn-success" id="btnExportPdf">Exportar PDF</button>
+                </div>
+            </div>
+            <div id="pdfContent" class="pdf-content"></div>
+        </div>
+    </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
+
+
