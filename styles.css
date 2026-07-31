@@ -1411,30 +1411,6 @@ h1, h2, h3, .form-section h3 {
 
 .btn-remove-item:hover { background: var(--rojo); color: white; }
 
-/* Firmas Grid */
-.firmas-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-}
-
-.firma-block {
-    background: var(--gray-50);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius);
-    padding: 14px;
-}
-
-.firma-block h4 {
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--primary);
-    margin-bottom: 10px;
-}
-
-.firma-block .form-group { margin-bottom: 8px; }
-.firma-block .form-group:last-child { margin-bottom: 0; }
-
 /* Images */
 .image-preview-grid {
     display: grid;
@@ -1703,7 +1679,6 @@ h1, h2, h3, .form-section h3 {
 
 /* Tablet */
 @media (max-width: 1024px) {
-    .firmas-grid { grid-template-columns: 1fr 1fr; }
     .pdf-content .pdf-firmas { grid-template-columns: 1fr 1fr; }
     .dash-kpi-grid { grid-template-columns: repeat(2, 1fr); }
 }
@@ -1827,15 +1802,11 @@ h1, h2, h3, .form-section h3 {
         font-size: 0.75rem;
     }
 
-    .firmas-grid { grid-template-columns: 1fr; }
-
     .form-section {
         padding: 16px;
     }
 
-    .firma-block {
-        padding: 12px;
-    }
+
 }
 
 /* Very small screens */

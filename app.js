@@ -579,16 +579,6 @@ function fillForm(f) {
     renderImagePreviews('Despues');
     updateStorageInfo('Antes');
     updateStorageInfo('Despues');
-
-    $('#firma1Nombre').value = f.firma1Nombre || '';
-    $('#firma1Cargo').value = f.firma1Cargo || '';
-    $('#firma1Depto').value = f.firma1Depto || '';
-    $('#firma2Nombre').value = f.firma2Nombre || '';
-    $('#firma2Cargo').value = f.firma2Cargo || '';
-    $('#firma2Depto').value = f.firma2Depto || '';
-    $('#firma3Nombre').value = f.firma3Nombre || '';
-    $('#firma3Cargo').value = f.firma3Cargo || '';
-    $('#firma3Depto').value = f.firma3Depto || '';
 }
 
 function getFormData() {
@@ -626,15 +616,6 @@ function getFormData() {
         imagenesAntes: currentImagesAntes,
         imagenesDespues: currentImagesDespues,
         imagenes: currentImagesAntes,
-        firma1Nombre: $('#firma1Nombre').value.trim(),
-        firma1Cargo: $('#firma1Cargo').value.trim(),
-        firma1Depto: $('#firma1Depto').value.trim(),
-        firma2Nombre: $('#firma2Nombre').value.trim(),
-        firma2Cargo: $('#firma2Cargo').value.trim(),
-        firma2Depto: $('#firma2Depto').value.trim(),
-        firma3Nombre: $('#firma3Nombre').value.trim(),
-        firma3Cargo: $('#firma3Cargo').value.trim(),
-        firma3Depto: $('#firma3Depto').value.trim(),
         fechaCreacion: fichaIdInput.value ? (loadFichasSync().find(x => x.id === fichaIdInput.value) || {}).fechaCreacion || Date.now() : Date.now(),
         fechaModificacion: Date.now()
     };
@@ -1202,9 +1183,9 @@ function renderPdfContent(f) {
             '<div class="pdf-row"><span class="pdf-label">Ubicacion Geo:</span><span class="pdf-value">' + escapeHtml(f.ubicacionGeo || '-') + '</span></div>' +
         '</div>' +
 
-        '<div class="pdf-section">' +
+            '<div class="pdf-section">' +
             '<div class="pdf-section-title">Ubicacion</div>' +
-            '<div class="pdf-row"><span class="pdf-label">Sector:</span><span class="pdf-value">' + escapeHtml(f.sector || '') + '</span></div>' +
+            '<div class="pdf-row"><span class="pdf-label">Sector:</span><span class="pdf-value">' + escapeHtml(f.ubicacionGeo || f.sector || '') + '</span></div>' +
             '<div class="pdf-row"><span class="pdf-label">Calle:</span><span class="pdf-value">' + escapeHtml(f.calle || '') + '</span></div>' +
             '<div class="pdf-row"><span class="pdf-label">Fecha de Visita:</span><span class="pdf-value">' + fechaVisita + '</span></div>' +
         '</div>' +
@@ -1248,21 +1229,21 @@ function renderPdfContent(f) {
         '<div class="pdf-firmas">' +
             '<div class="pdf-firma">' +
                 '<div class="pdf-firma-line"></div>' +
-                '<div class="pdf-firma-name">' + escapeHtml(f.firma1Nombre || '') + '</div>' +
-                '<div class="pdf-firma-cargo">' + escapeHtml(f.firma1Cargo || '') + '</div>' +
-                '<div class="pdf-firma-depto">' + escapeHtml(f.firma1Depto || '') + '</div>' +
+                '<div class="pdf-firma-name">' + escapeHtml(f.sectorialPersona || '-') + '</div>' +
+                '<div class="pdf-firma-cargo">Sectorial</div>' +
+                '<div class="pdf-firma-depto">' + escapeHtml(f.sectorialCorreo || '-') + '</div>' +
             '</div>' +
             '<div class="pdf-firma">' +
                 '<div class="pdf-firma-line"></div>' +
-                '<div class="pdf-firma-name">' + escapeHtml(f.firma2Nombre || '') + '</div>' +
-                '<div class="pdf-firma-cargo">' + escapeHtml(f.firma2Cargo || '') + '</div>' +
-                '<div class="pdf-firma-depto">' + escapeHtml(f.firma2Depto || '') + '</div>' +
+                '<div class="pdf-firma-name">' + escapeHtml(f.profesionalCargo || '-') + '</div>' +
+                '<div class="pdf-firma-cargo">Profesional a cargo</div>' +
+                '<div class="pdf-firma-depto">-</div>' +
             '</div>' +
             '<div class="pdf-firma">' +
                 '<div class="pdf-firma-line"></div>' +
-                '<div class="pdf-firma-name">' + escapeHtml(f.firma3Nombre || '') + '</div>' +
-                '<div class="pdf-firma-cargo">' + escapeHtml(f.firma3Cargo || '') + '</div>' +
-                '<div class="pdf-firma-depto">' + escapeHtml(f.firma3Depto || '') + '</div>' +
+                '<div class="pdf-firma-name">' + escapeHtml(f.derivadoPor || '-') + '</div>' +
+                '<div class="pdf-firma-cargo">Profesional en terreno</div>' +
+                '<div class="pdf-firma-depto">-</div>' +
             '</div>' +
         '</div>';
 }
