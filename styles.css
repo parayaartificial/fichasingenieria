@@ -961,7 +961,7 @@ body {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.8rem;
-    min-width: 1100px;
+    min-width: 1450px;
 }
 
 .control-table thead th {
@@ -1084,6 +1084,98 @@ body {
     padding: 40px !important;
     color: var(--gray-400);
     font-size: 0.85rem;
+}
+
+.control-select {
+    cursor: pointer;
+    min-width: 130px;
+}
+
+.control-sectorial {
+    min-width: 230px;
+}
+
+.control-sectorial-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.control-contacto {
+    display: block;
+    font-size: 0.68rem;
+    color: var(--gray-400);
+    margin-top: 3px;
+    line-height: 1.3;
+}
+
+.control-derivado {
+    min-width: 220px;
+}
+
+.control-derivado-wrap {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.control-derivado-wrap .control-select {
+    flex: 1;
+    min-width: 110px;
+}
+
+.control-derivado-wrap .control-input[type="date"] {
+    min-width: 118px;
+    flex-shrink: 0;
+}
+
+.control-prioridad {
+    min-width: 150px;
+}
+
+.control-prioridad-wrap {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.control-prioridad-wrap .control-select {
+    min-width: 80px;
+    flex-shrink: 0;
+}
+
+.control-hours {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    white-space: nowrap;
+    background: var(--gray-100);
+    color: var(--gray-500);
+}
+
+.control-hours.ok {
+    background: var(--verde-lighter, #d1fae5);
+    color: var(--verde);
+}
+
+.control-hours.warn {
+    background: #fef3c7;
+    color: var(--amarillo);
+}
+
+.control-hours.late {
+    background: #fee2e2;
+    color: var(--rojo);
+}
+
+.control-acciones {
+    white-space: nowrap;
+}
+
+.control-acciones .btn + .btn {
+    margin-left: 4px;
 }
 
 /* Semaforo Selector */

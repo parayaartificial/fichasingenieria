@@ -70,6 +70,51 @@ let currentImagesAntes = [];
 let currentImagesDespues = [];
 let currentUser = null;
 
+// ============ CONTROL DOCUMENTAL - DATOS MAESTROS ============
+const SECTORES = {
+    'Collao': [
+        { nombre: 'Rogelio Escalona', correo: 'rescalona@concepcion.cl', telefono: '987282050' },
+        { nombre: 'Claudio San Martin', correo: 'csanmartin@concepcion.cl', telefono: '929397904' },
+        { nombre: 'Luis Subiabre', correo: 'luisubiabre@gmail.com', telefono: '988820164' },
+        { nombre: 'Estefania Conejeros', correo: '', telefono: '956973779' }
+    ],
+    'Rural': [
+        { nombre: 'Julio Andrades (delegado)', correo: 'julio.andrades@concepcion.cl', telefono: '985105137' },
+        { nombre: 'Jose Lizama', correo: 'jlizama@concepcion.cl', telefono: '996095230' },
+        { nombre: 'Gabriel Torres H', correo: 'gabrieltorres.municonce@gmail.com', telefono: '952292838' }
+    ],
+    'Barrio Norte': [
+        { nombre: 'Jorge Sepulveda (delegado)', correo: 'jorge.sepulveda@concepcion.cl', telefono: '989868776' },
+        { nombre: 'Michelle Vera', correo: 'mvera@concepcion.cl', telefono: '981858707' },
+        { nombre: 'Carolina Gutierrez', correo: 'carigutierrez.nutricion@gmail.com', telefono: '988809583' },
+        { nombre: 'Rocio Bruna', correo: 'bruna.rocio.b@gmail.com', telefono: '926271642' },
+        { nombre: 'Miguel Carrillo', correo: 'Mac.s.16@hotmail.com', telefono: '983819010' }
+    ],
+    'Lorenzo Arenas': [
+        { nombre: 'Hugo Rodriguez (delegado)', correo: 'hrodriguez@concepcion.cl', telefono: '966345728' },
+        { nombre: 'Ana Bastias', correo: 'abastias@concepcion.cl', telefono: '981564284' },
+        { nombre: 'Aydee Sandoval', correo: 'asandoval@concepcion.cl', telefono: '951942478' },
+        { nombre: 'Mauricio Rodriguez', correo: 'mauricio.rodriguez@concepcion.cl', telefono: '927553445' }
+    ],
+    'Centro': [
+        { nombre: 'Yonathan Quidel', correo: 'yquidel@concepcion.cl', telefono: '995786311' },
+        { nombre: 'Pia Cordes', correo: 'pcordes@concepcion.cl', telefono: '989989436' },
+        { nombre: 'Nicole Vidal', correo: 'nvidal@concepcion.cl', telefono: '930738977' },
+        { nombre: 'Valeria Olea', correo: 'Valeria.olea@concepcion.cl', telefono: '967532205' }
+    ]
+};
+
+const DERIVADOS = [
+    'Victor Lobos', 'Eduardo Cancino SECPLAN', 'Francisco Ojeda SECPLAN', 'Mario Pereira',
+    'Alberto Jarpa', 'Felipe Valdebenito', 'Daniel Muñoz', 'Andres Herrera', 'Adrian Vargas',
+    'Susana Carrasco'
+];
+
+const PROFESIONALES = ['Marcela Flores', 'Mauricio Enriquez'];
+
+const PRIORIDAD_LIMITES = { alta: 48, media: 72, baja: 96 };
+
+
 // ============ AUTH SYSTEM ============
 const USERS_KEY = 'fichas_users';
 const SESSION_KEY = 'fichas_session';
@@ -260,6 +305,22 @@ function getNextRegistroNum() {
             if (!isNaN(num) && num > maxNum) maxNum = num;
         });
         return maxNum + 1;
+    });
+}
+
+function getNextCodigoSeguimiento() {
+    const year = new Date().getFullYear();
+    return loadFichas().then(fichas => {
+        let maxNum = 0;
+        fichas.forEach(f => {
+            const codigo = f.codigoSeguimiento || '';
+            const m = /^(\d+)-SDC-(\d+)$/.exec(codigo);
+            if (m && parseInt(m[2], 10) === year) {
+                const n = parseInt(m[1], 10);
+                if (!isNaN(n) && n > maxNum) maxNum = n;
+            }
+        });
+        return String(maxNum + 1).padStart(2, '0') + '-SDC-' + year;
     });
 }
 
@@ -469,6 +530,7 @@ function showForm(ficha) {
         $('#storageInfoAntes').textContent = '';
         $('#storageInfoDespues').textContent = '';
         getNextRegistroNum().then(num => { $('#registroNum').value = num; });
+        getNextCodigoSeguimiento().then(codigo => { $('#codigoSeguimiento').value = codigo; });
     }
 
     formContainer.scrollIntoView({ behavior: 'smooth' });
@@ -495,9 +557,14 @@ function fillForm(f) {
 
     $('#conclusion').value = f.conclusion || '';
     $('#descripcion').value = f.descripcion || '';
-    $('#quienTieneDoc').value = f.quienTieneDoc || '';
-    $('#quienRevisa').value = f.quienRevisa || '';
+    $('#codigoSeguimiento').value = f.codigoSeguimiento || '';
+    $('#sectorialSelect').value = f.sectorial || '';
+    poblarPersonasForm(f.sectorial || '');
+    $('#sectorialPersonaSelect').value = f.sectorialPersona || '';
+    actualizarContactoForm(f.sectorial || '', f.sectorialPersona || '');
     $('#profesionalCargo').value = f.profesionalCargo || '';
+    $('#derivadoPor').value = f.derivadoPor || '';
+    $('#prioridadSelect').value = f.prioridad || '';
     $('#ubicacionGeo').value = f.ubicacionGeo || '';
     $('#fechaDerivacion').value = f.fechaDerivacion || '';
     $('#fechaEntrega').value = f.fechaEntrega || '';
@@ -526,6 +593,7 @@ function fillForm(f) {
 
 function getFormData() {
     const reporteRadio = fichaForm.querySelector('input[name="reporteConcluyente"]:checked');
+    const contactoForm = getContacto($('#sectorialSelect').value, $('#sectorialPersonaSelect').value);
     return {
         id: fichaIdInput.value || generateId(),
         semaforo: semaforoColor.value,
@@ -541,9 +609,14 @@ function getFormData() {
         reporteConcluyente: reporteRadio ? reporteRadio.value : '',
         conclusion: $('#conclusion').value.trim(),
         descripcion: $('#descripcion').value.trim(),
-        quienTieneDoc: $('#quienTieneDoc').value.trim(),
-        quienRevisa: $('#quienRevisa').value.trim(),
-        profesionalCargo: $('#profesionalCargo').value.trim(),
+        codigoSeguimiento: $('#codigoSeguimiento').value.trim(),
+        sectorial: $('#sectorialSelect').value,
+        sectorialPersona: $('#sectorialPersonaSelect').value,
+        sectorialCorreo: (contactoForm && contactoForm.correo) || '',
+        sectorialTelefono: (contactoForm && contactoForm.telefono) || '',
+        profesionalCargo: $('#profesionalCargo').value,
+        derivadoPor: $('#derivadoPor').value,
+        prioridad: $('#prioridadSelect').value,
         ubicacionGeo: $('#ubicacionGeo').value.trim(),
         fechaDerivacion: $('#fechaDerivacion').value,
         fechaEntrega: $('#fechaEntrega').value,
@@ -745,6 +818,46 @@ function updateControlField(fichaId, campo, valor) {
     });
 }
 
+function updateControlFields(fichaId, campos) {
+    return loadFichas().then(fichas => {
+        const f = fichas.find(x => x.id === fichaId);
+        if (!f) return;
+        Object.assign(f, campos);
+        return saveFichas(fichas);
+    });
+}
+
+function getContacto(sector, persona) {
+    const lista = SECTORES[sector] || [];
+    return lista.find(p => p.nombre === persona) || null;
+}
+
+function getHorasEstado(f) {
+    if (!f.fechaDerivacion) return null;
+    const deriv = new Date(f.fechaDerivacion + 'T00:00:00');
+    const horas = Math.max(0, Math.floor((Date.now() - deriv.getTime()) / 3600000));
+    const limite = PRIORIDAD_LIMITES[f.prioridad || 'baja'] || 96;
+    return { horas, limite, pct: limite ? horas / limite : 0 };
+}
+
+function updateHorasCells() {
+    if (controlContainer.style.display === 'none') return;
+    document.querySelectorAll('.control-hours[data-id]').forEach(el => {
+        const id = el.dataset.id;
+        const prioridad = el.dataset.prioridad || 'baja';
+        const fechaDerivacion = el.dataset.fechaderivacion || '';
+        const f = { prioridad: prioridad, fechaDerivacion: fechaDerivacion };
+        const estado = getHorasEstado(f);
+        if (!estado) {
+            el.textContent = '-';
+            el.className = 'control-hours';
+            return;
+        }
+        el.textContent = estado.horas + 'h / ' + estado.limite + 'h';
+        el.className = 'control-hours ' + (estado.pct >= 1 ? 'late' : (estado.pct >= 0.8 ? 'warn' : 'ok'));
+    });
+}
+
 function showControlView() {
     emptyState.style.display = 'none';
     formContainer.style.display = 'none';
@@ -754,6 +867,24 @@ function showControlView() {
 
     loadFichas().then(fichas => {
         fichas.sort((a, b) => (b.fechaCreacion || 0) - (a.fechaCreacion || 0));
+
+        let backfilled = false;
+        const year = new Date().getFullYear();
+        let maxNum = 0;
+        fichas.forEach(f => {
+            const m = /^(\d+)-SDC-(\d+)$/.exec(f.codigoSeguimiento || '');
+            if (m && parseInt(m[2], 10) === year) {
+                maxNum = Math.max(maxNum, parseInt(m[1], 10));
+            }
+        });
+        fichas.forEach(f => {
+            if (!f.codigoSeguimiento) {
+                f.codigoSeguimiento = String(++maxNum).padStart(2, '0') + '-SDC-' + year;
+                backfilled = true;
+            }
+        });
+        if (backfilled) saveFichas(fichas);
+
         controlTableBody.innerHTML = '';
 
         if (fichas.length === 0) {
@@ -762,28 +893,89 @@ function showControlView() {
         }
 
         fichas.forEach(f => {
-            const fechaVisita = f.fechaVisita ? new Date(f.fechaVisita).toLocaleDateString('es-CL') : '';
             const motivo = extractMotivo(f.descripcion);
             const tr = document.createElement('tr');
+            const contacto = getContacto(f.sectorial || '', f.sectorialPersona || '');
+
             tr.innerHTML =
                 '<td class="control-num">' + (f.registroNum || '-') + '</td>' +
                 '<td class="control-motivo" title="' + escapeHtml(f.descripcion || '') + '">' + escapeHtml(motivo) + '</td>' +
-                '<td class="control-seg" title="' + escapeHtml(f.id) + '">' + escapeHtml(f.id) + '</td>' +
-                '<td><input type="text" class="control-input" data-field="quienTieneDoc" value="' + escapeHtml(f.quienTieneDoc || '') + '" placeholder="-" title="Quien tiene el documento"></td>' +
-                '<td><input type="text" class="control-input" data-field="quienRevisa" value="' + escapeHtml(f.quienRevisa || '') + '" placeholder="-" title="Quien debe revisar"></td>' +
-                '<td><input type="text" class="control-input" data-field="profesionalCargo" value="' + escapeHtml(f.profesionalCargo || '') + '" placeholder="-" title="Profesional a cargo"></td>' +
-                '<td><input type="date" class="control-input" data-field="fechaDerivacion" value="' + (f.fechaDerivacion || '') + '"></td>' +
-                '<td class="control-fecha">' + fechaVisita + '</td>' +
-                '<td><input type="date" class="control-input" data-field="fechaEntrega" value="' + (f.fechaEntrega || '') + '"></td>' +
+                '<td class="control-seg" title="' + escapeHtml(f.id) + '">' + escapeHtml(f.codigoSeguimiento || '-') + '</td>' +
+                '<td class="control-sectorial">' +
+                    '<div class="control-sectorial-wrap">' +
+                        '<select class="control-input control-select" data-field="sectorial" data-id="' + f.id + '"></select>' +
+                        '<select class="control-input control-select" data-field="sectorialPersona" data-id="' + f.id + '"></select>' +
+                        '<span class="control-contacto" data-contacto="' + f.id + '">' + (contacto ? escapeHtml((contacto.correo ? contacto.correo + ' - ' : '') + contacto.telefono) : '') + '</span>' +
+                    '</div>' +
+                '</td>' +
+                '<td><select class="control-input control-select" data-field="profesionalCargo" data-id="' + f.id + '"></select></td>' +
+                '<td class="control-derivado">' +
+                    '<div class="control-derivado-wrap">' +
+                        '<select class="control-input control-select" data-field="derivadoPor" data-id="' + f.id + '"></select>' +
+                        '<input type="date" class="control-input" data-field="fechaDerivacion" data-id="' + f.id + '" value="' + (f.fechaDerivacion || '') + '">' +
+                    '</div>' +
+                '</td>' +
+                '<td><input type="date" class="control-input" data-field="fechaVisita" data-id="' + f.id + '" value="' + (f.fechaVisita || '') + '"></td>' +
+                '<td><input type="date" class="control-input" data-field="fechaEntrega" data-id="' + f.id + '" value="' + (f.fechaEntrega || '') + '"></td>' +
+                '<td class="control-prioridad">' +
+                    '<div class="control-prioridad-wrap">' +
+                        '<select class="control-input control-select" data-field="prioridad" data-id="' + f.id + '">' +
+                            '<option value="">-</option>' +
+                            '<option value="alta">Alta</option>' +
+                            '<option value="media">Media</option>' +
+                            '<option value="baja">Baja</option>' +
+                        '</select>' +
+                        '<span class="control-hours" data-id="' + f.id + '" data-prioridad="' + (f.prioridad || '') + '" data-fechaderivacion="' + (f.fechaDerivacion || '') + '">-</span>' +
+                    '</div>' +
+                '</td>' +
                 '<td class="control-ubicacion">' +
                     '<div class="control-ub-wrap">' +
-                        '<input type="text" class="control-input" data-field="ubicacionGeo" value="' + escapeHtml(f.ubicacionGeo || '') + '" placeholder="Link Google Maps">' +
+                        '<input type="text" class="control-input" data-field="ubicacionGeo" data-id="' + f.id + '" value="' + escapeHtml(f.ubicacionGeo || '') + '" placeholder="Link Google Maps">' +
                         '<a href="#" class="control-map-btn" data-map="' + f.id + '" title="Abrir en Google Maps">Mapa</a>' +
                     '</div>' +
                 '</td>' +
-                '<td><button type="button" class="btn btn-primary btn-sm" data-open="' + f.id + '">Ver</button></td>';
+                '<td class="control-acciones">' +
+                    '<button type="button" class="btn btn-secondary btn-sm" data-open="' + f.id + '">Ver</button>' +
+                    '<button type="button" class="btn btn-success btn-sm" data-generar="' + f.id + '">Generar Informe</button>' +
+                '</td>';
+
+            const sectorSel = tr.querySelector('[data-field="sectorial"]');
+            const personaSel = tr.querySelector('[data-field="sectorialPersona"]');
+            const contactoEl = tr.querySelector('[data-contacto]');
+            llenarSelect(sectorSel, Object.keys(SECTORES), f.sectorial || '');
+            llenarSelect(personaSel, (SECTORES[f.sectorial] || []).map(p => p.nombre), f.sectorialPersona || '');
+            llenarSelect(tr.querySelector('[data-field="profesionalCargo"]'), PROFESIONALES, f.profesionalCargo || '');
+            llenarSelect(tr.querySelector('[data-field="derivadoPor"]'), DERIVADOS, f.derivadoPor || '');
+            tr.querySelector('[data-field="prioridad"]').value = f.prioridad || '';
+
+            sectorSel.addEventListener('change', () => {
+                const sector = sectorSel.value;
+                llenarSelect(personaSel, (SECTORES[sector] || []).map(p => p.nombre), '');
+                contactoEl.textContent = '';
+                updateControlFields(f.id, {
+                    sectorial: sector,
+                    sectorialPersona: '',
+                    sectorialCorreo: '',
+                    sectorialTelefono: '',
+                    ubicacionGeo: sector
+                });
+                const ubInput = tr.querySelector('[data-field="ubicacionGeo"]');
+                ubInput.value = sector;
+            });
+
+            personaSel.addEventListener('change', () => {
+                const datos = getContacto(sectorSel.value, personaSel.value);
+                contactoEl.textContent = datos ? escapeHtml((datos.correo ? datos.correo + ' - ' : '') + datos.telefono) : '';
+                updateControlFields(f.id, {
+                    sectorialPersona: personaSel.value,
+                    sectorialCorreo: datos ? datos.correo : '',
+                    sectorialTelefono: datos ? datos.telefono : ''
+                });
+            });
 
             tr.querySelector('[data-open]').addEventListener('click', () => viewFicha(f.id));
+
+            tr.querySelector('[data-generar]').addEventListener('click', () => generarInforme(tr, f.id));
 
             const mapBtn = tr.querySelector('[data-map]');
             mapBtn.addEventListener('click', (e) => {
@@ -793,21 +985,107 @@ function showControlView() {
                 if (url) window.open(url, '_blank');
             });
 
-            tr.querySelectorAll('.control-input').forEach(input => {
-                input.addEventListener('input', () => {
-                    const campo = input.dataset.field;
-                    clearTimeout(input._saveTimer);
-                    input._saveTimer = setTimeout(() => updateControlField(f.id, campo, input.value), 700);
-                });
-                input.addEventListener('change', () => {
-                    updateControlField(f.id, input.dataset.field, input.value);
-                });
+            tr.querySelectorAll('[data-field]').forEach(el => {
+                if (el.tagName === 'SELECT') {
+                    el.addEventListener('change', () => {
+                        const horasEl = tr.querySelector('.control-hours');
+                        if (el.dataset.field === 'prioridad' && horasEl) {
+                            horasEl.dataset.prioridad = el.value;
+                            updateHorasCells();
+                        }
+                        if (el.dataset.field === 'fechaDerivacion' && horasEl) {
+                            horasEl.dataset.fechaderivacion = el.value;
+                            updateHorasCells();
+                        }
+                        updateControlField(f.id, el.dataset.field, el.value);
+                    });
+                } else {
+                    el.addEventListener('input', () => {
+                        const campo = el.dataset.field;
+                        clearTimeout(el._saveTimer);
+                        el._saveTimer = setTimeout(() => updateControlField(f.id, campo, el.value), 700);
+                    });
+                    el.addEventListener('change', () => {
+                        const horasEl = tr.querySelector('.control-hours');
+                        if (el.dataset.field === 'fechaDerivacion' && horasEl) {
+                            horasEl.dataset.fechaderivacion = el.value;
+                            updateHorasCells();
+                        }
+                        updateControlField(f.id, el.dataset.field, el.value);
+                    });
+                }
             });
 
             controlTableBody.appendChild(tr);
         });
+
+        updateHorasCells();
     });
 }
+
+function generarInforme(tr, fichaId) {
+    const campos = {};
+    tr.querySelectorAll('[data-field]').forEach(el => {
+        if (el.tagName === 'SELECT' || el.tagName === 'INPUT') {
+            clearTimeout(el._saveTimer);
+            campos[el.dataset.field] = el.value;
+        }
+    });
+    const sector = campos.sectorial || '';
+    const persona = campos.sectorialPersona || '';
+    const datos = getContacto(sector, persona);
+    campos.sectorialCorreo = datos ? datos.correo : '';
+    campos.sectorialTelefono = datos ? datos.telefono : '';
+    updateControlFields(fichaId, campos).then(() => viewFicha(fichaId));
+}
+
+function llenarSelect(select, opciones, seleccionado) {
+    select.innerHTML = '';
+    const vacio = document.createElement('option');
+    vacio.value = '';
+    vacio.textContent = '-';
+    select.appendChild(vacio);
+    opciones.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt;
+        option.textContent = opt;
+        if (opt === seleccionado) option.selected = true;
+        select.appendChild(option);
+    });
+}
+
+function poblarPersonasForm(sector) {
+    const personaSel = $('#sectorialPersonaSelect');
+    llenarSelect(personaSel, (SECTORES[sector] || []).map(p => p.nombre), '');
+}
+
+function actualizarContactoForm(sector, persona) {
+    const datos = getContacto(sector, persona);
+    const el = $('#sectorialContacto');
+    el.textContent = datos ? ((datos.correo ? datos.correo + ' - ' : '') + datos.telefono) : '';
+}
+
+function initControlSelects() {
+    llenarSelect($('#sectorialSelect'), Object.keys(SECTORES), '');
+    llenarSelect($('#profesionalCargo'), PROFESIONALES, '');
+    llenarSelect($('#derivadoPor'), DERIVADOS, '');
+    $('#prioridadSelect').value = '';
+
+    $('#sectorialSelect').addEventListener('change', () => {
+        const sector = $('#sectorialSelect').value;
+        poblarPersonasForm(sector);
+        actualizarContactoForm(sector, '');
+        if (sector) {
+            $('#ubicacionGeo').value = sector;
+        }
+    });
+
+    $('#sectorialPersonaSelect').addEventListener('change', () => {
+        actualizarContactoForm($('#sectorialSelect').value, $('#sectorialPersonaSelect').value);
+    });
+}
+
+setInterval(updateHorasCells, 60000);
 
 // ============ RENDER PDF CONTENT ============
 function renderPdfContent(f) {
@@ -909,6 +1187,19 @@ function renderPdfContent(f) {
             '<div class="pdf-section-title">Datos de la Emergencia</div>' +
             '<div class="pdf-row"><span class="pdf-label">Tipo de Emergencia:</span><span class="pdf-value">' + escapeHtml(f.tipoEmergencia || '') + '</span></div>' +
             '<div class="pdf-row"><span class="pdf-label">Registro N&ordm;:</span><span class="pdf-value">' + escapeHtml(String(f.registroNum || '')) + '</span></div>' +
+        '</div>' +
+
+        '<div class="pdf-section">' +
+            '<div class="pdf-section-title">Control Documental</div>' +
+            '<div class="pdf-row"><span class="pdf-label">Codigo de Seguimiento:</span><span class="pdf-value">' + escapeHtml(f.codigoSeguimiento || '-') + '</span></div>' +
+            '<div class="pdf-row"><span class="pdf-label">Sectorial:</span><span class="pdf-value">' + escapeHtml(f.sectorial || '-') + '</span></div>' +
+            '<div class="pdf-row"><span class="pdf-label">Encargado:</span><span class="pdf-value">' + escapeHtml(f.sectorialPersona || '-') + (f.sectorialCorreo ? ' - ' + escapeHtml(f.sectorialCorreo) : '') + (f.sectorialTelefono ? ' - ' + escapeHtml(f.sectorialTelefono) : '') + '</span></div>' +
+            '<div class="pdf-row"><span class="pdf-label">Profesional a Cargo:</span><span class="pdf-value">' + escapeHtml(f.profesionalCargo || '-') + '</span></div>' +
+            '<div class="pdf-row"><span class="pdf-label">Derivado por:</span><span class="pdf-value">' + escapeHtml(f.derivadoPor || '-') + '</span></div>' +
+            '<div class="pdf-row"><span class="pdf-label">Prioridad:</span><span class="pdf-value">' + escapeHtml(f.prioridad ? f.prioridad.charAt(0).toUpperCase() + f.prioridad.slice(1) : '-') + '</span></div>' +
+            '<div class="pdf-row"><span class="pdf-label">Fecha de Derivacion:</span><span class="pdf-value">' + (f.fechaDerivacion ? new Date(f.fechaDerivacion).toLocaleDateString('es-CL') : '-') + '</span></div>' +
+            '<div class="pdf-row"><span class="pdf-label">Fecha de Entrega:</span><span class="pdf-value">' + (f.fechaEntrega ? new Date(f.fechaEntrega).toLocaleDateString('es-CL') : '-') + '</span></div>' +
+            '<div class="pdf-row"><span class="pdf-label">Ubicacion Geo:</span><span class="pdf-value">' + escapeHtml(f.ubicacionGeo || '-') + '</span></div>' +
         '</div>' +
 
         '<div class="pdf-section">' +
@@ -1346,6 +1637,7 @@ if (sidebarFooter) sidebarFooter.appendChild(btnShowCreds);
 
 // ============ INIT ============
 initDefaultUsers();
+initControlSelects();
 if (checkSession()) {
     showApp();
 } else {

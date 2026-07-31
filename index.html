@@ -226,22 +226,45 @@
 
                 <section class="form-section">
                     <h3>Control Documental</h3>
+                    <input type="hidden" id="codigoSeguimiento" value="">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="quienTieneDoc">Quien Tiene el Documento</label>
-                            <input type="text" id="quienTieneDoc" placeholder="Persona u oficina que custodia el documento">
+                            <label for="sectorialSelect">Sectorial (Delegacion)</label>
+                            <select id="sectorialSelect">
+                                <option value="">Seleccionar sector...</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label for="quienRevisa">Quien Debe Revisar</label>
-                            <input type="text" id="quienRevisa" placeholder="Persona encargada de revisar el informe">
+                            <label for="sectorialPersonaSelect">Encargado del Sector</label>
+                            <select id="sectorialPersonaSelect">
+                                <option value="">Seleccionar encargado...</option>
+                            </select>
+                            <span class="control-contacto" id="sectorialContacto"></span>
                         </div>
                         <div class="form-group">
                             <label for="profesionalCargo">Profesional a Cargo</label>
-                            <input type="text" id="profesionalCargo" placeholder="Profesional responsable del informe">
+                            <select id="profesionalCargo">
+                                <option value="">Seleccionar...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="derivadoPor">Derivado por</label>
+                            <select id="derivadoPor">
+                                <option value="">Seleccionar...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="prioridadSelect">Prioridad</label>
+                            <select id="prioridadSelect">
+                                <option value="">Seleccionar...</option>
+                                <option value="alta">Alta</option>
+                                <option value="media">Media</option>
+                                <option value="baja">Baja</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="ubicacionGeo">Ubicacion Georeferenciada</label>
-                            <input type="text" id="ubicacionGeo" placeholder="Link de Google Maps (Ej: https://maps.app.goo.gl/...)">
+                            <input type="text" id="ubicacionGeo" placeholder="Link de Google Maps o sector (se auto-llena)">
                         </div>
                         <div class="form-group">
                             <label for="fechaDerivacion">Fecha de Derivacion</label>
@@ -384,14 +407,14 @@
                             <th>N&ordm;</th>
                             <th>Motivo</th>
                             <th>N&ordm; Seg.</th>
-                            <th>Quien Tiene</th>
-                            <th>Quien Revisa</th>
-                            <th>Profesional a Cargo</th>
-                            <th>Fecha Derivacion</th>
-                            <th>Fecha Visita</th>
-                            <th>Fecha Entrega</th>
+                            <th>Sectorial</th>
+                            <th>Profesional</th>
+                            <th>Derivado / F. Derivacion</th>
+                            <th>F. Visita</th>
+                            <th>F. Entrega</th>
+                            <th>Prioridad / Horas</th>
                             <th>Ubicacion</th>
-                            <th>Informe</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="controlTableBody"></tbody>
