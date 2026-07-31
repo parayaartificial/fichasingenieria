@@ -978,10 +978,10 @@ body {
 }
 
 .control-table tbody td {
-    padding: 10px 14px;
+    padding: 8px 10px;
     border-bottom: 1px solid var(--gray-100);
     color: var(--gray-700);
-    vertical-align: top;
+    vertical-align: middle;
 }
 
 .control-table tbody tr:hover { background: var(--gray-50); }
@@ -991,6 +991,84 @@ body {
     font-weight: 700;
     color: var(--gray-800);
     white-space: nowrap;
+}
+
+.control-seg {
+    font-family: Consolas, Menlo, monospace;
+    font-size: 0.72rem;
+    color: var(--gray-500);
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.control-motivo {
+    max-width: 220px;
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+.control-fecha {
+    white-space: nowrap;
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+.control-ubicacion {
+    min-width: 210px;
+}
+
+.control-ub-wrap {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.control-input {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 0.76rem;
+    color: var(--gray-700);
+    background: white;
+    transition: var(--transition);
+    min-width: 80px;
+    box-sizing: border-box;
+}
+
+.control-input:hover { border-color: var(--gray-300); }
+
+.control-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-lighter);
+}
+
+.control-input[type="date"] {
+    min-width: 118px;
+}
+
+.control-map-btn {
+    flex-shrink: 0;
+    padding: 5px 10px;
+    border: 1.5px solid var(--primary-lighter);
+    border-radius: var(--radius);
+    background: var(--primary-lighter);
+    color: var(--primary);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: var(--transition);
+}
+
+.control-map-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
 }
 
 .control-map-link {

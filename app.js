@@ -495,8 +495,6 @@ function fillForm(f) {
 
     $('#conclusion').value = f.conclusion || '';
     $('#descripcion').value = f.descripcion || '';
-    $('#numeroSeguimiento').value = f.numeroSeguimiento || '';
-    $('#motivoInforme').value = f.motivoInforme || '';
     $('#quienTieneDoc').value = f.quienTieneDoc || '';
     $('#quienRevisa').value = f.quienRevisa || '';
     $('#profesionalCargo').value = f.profesionalCargo || '';
@@ -543,8 +541,6 @@ function getFormData() {
         reporteConcluyente: reporteRadio ? reporteRadio.value : '',
         conclusion: $('#conclusion').value.trim(),
         descripcion: $('#descripcion').value.trim(),
-        numeroSeguimiento: $('#numeroSeguimiento').value.trim(),
-        motivoInforme: $('#motivoInforme').value.trim(),
         quienTieneDoc: $('#quienTieneDoc').value.trim(),
         quienRevisa: $('#quienRevisa').value.trim(),
         profesionalCargo: $('#profesionalCargo').value.trim(),
@@ -727,9 +723,26 @@ function viewFicha(id) {
 
 // ============ CONTROL DOCUMENTAL ============
 function mapsUrl(value) {
-    const coords = value.trim().match(/^-?\d+\.?\d*,\s*-?\d+\.?\d*$/);
-    if (coords) return 'https://www.google.com/maps?q=' + encodeURIComponent(value.trim());
+    value = (value || '').trim();
+    if (!value) return null;
+    if (/^https?:\/\//i.test(value)) return value;
     return 'https://www.google.com/maps?q=' + encodeURIComponent(value);
+}
+
+function extractMotivo(descripcion) {
+    if (!descripcion) return '-';
+    const primeraLinea = descripcion.trim().split('\n')[0].trim();
+    if (!primeraLinea) return '-';
+    return primeraLinea.length > 100 ? primeraLinea.slice(0, 100) + '...' : primeraLinea;
+}
+
+function updateControlField(fichaId, campo, valor) {
+    loadFichas().then(fichas => {
+        const f = fichas.find(x => x.id === fichaId);
+        if (!f) return;
+        f[campo] = valor;
+        saveFichas(fichas);
+    });
 }
 
 function showControlView() {
@@ -749,25 +762,48 @@ function showControlView() {
         }
 
         fichas.forEach(f => {
-            const fechaFmt = (d) => d ? new Date(d).toLocaleDateString('es-CL') : '-';
-            const ub = f.ubicacionGeo || '';
-            const ubHtml = ub
-                ? '<a href="' + mapsUrl(ub) + '" target="_blank" rel="noopener" class="control-map-link" title="Abrir en Google Maps">' + escapeHtml(ub) + '</a>'
-                : '-';
+            const fechaVisita = f.fechaVisita ? new Date(f.fechaVisita).toLocaleDateString('es-CL') : '';
+            const motivo = extractMotivo(f.descripcion);
             const tr = document.createElement('tr');
             tr.innerHTML =
                 '<td class="control-num">' + (f.registroNum || '-') + '</td>' +
-                '<td>' + escapeHtml(f.motivoInforme || '-') + '</td>' +
-                '<td>' + escapeHtml(f.numeroSeguimiento || '-') + '</td>' +
-                '<td>' + escapeHtml(f.quienTieneDoc || '-') + '</td>' +
-                '<td>' + escapeHtml(f.quienRevisa || '-') + '</td>' +
-                '<td>' + escapeHtml(f.profesionalCargo || '-') + '</td>' +
-                '<td>' + fechaFmt(f.fechaDerivacion) + '</td>' +
-                '<td>' + fechaFmt(f.fechaVisita) + '</td>' +
-                '<td>' + fechaFmt(f.fechaEntrega) + '</td>' +
-                '<td>' + ubHtml + '</td>' +
+                '<td class="control-motivo" title="' + escapeHtml(f.descripcion || '') + '">' + escapeHtml(motivo) + '</td>' +
+                '<td class="control-seg" title="' + escapeHtml(f.id) + '">' + escapeHtml(f.id) + '</td>' +
+                '<td><input type="text" class="control-input" data-field="quienTieneDoc" value="' + escapeHtml(f.quienTieneDoc || '') + '" placeholder="-" title="Quien tiene el documento"></td>' +
+                '<td><input type="text" class="control-input" data-field="quienRevisa" value="' + escapeHtml(f.quienRevisa || '') + '" placeholder="-" title="Quien debe revisar"></td>' +
+                '<td><input type="text" class="control-input" data-field="profesionalCargo" value="' + escapeHtml(f.profesionalCargo || '') + '" placeholder="-" title="Profesional a cargo"></td>' +
+                '<td><input type="date" class="control-input" data-field="fechaDerivacion" value="' + (f.fechaDerivacion || '') + '"></td>' +
+                '<td class="control-fecha">' + fechaVisita + '</td>' +
+                '<td><input type="date" class="control-input" data-field="fechaEntrega" value="' + (f.fechaEntrega || '') + '"></td>' +
+                '<td class="control-ubicacion">' +
+                    '<div class="control-ub-wrap">' +
+                        '<input type="text" class="control-input" data-field="ubicacionGeo" value="' + escapeHtml(f.ubicacionGeo || '') + '" placeholder="Link Google Maps">' +
+                        '<a href="#" class="control-map-btn" data-map="' + f.id + '" title="Abrir en Google Maps">Mapa</a>' +
+                    '</div>' +
+                '</td>' +
                 '<td><button type="button" class="btn btn-primary btn-sm" data-open="' + f.id + '">Ver</button></td>';
+
             tr.querySelector('[data-open]').addEventListener('click', () => viewFicha(f.id));
+
+            const mapBtn = tr.querySelector('[data-map]');
+            mapBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const input = tr.querySelector('[data-field="ubicacionGeo"]');
+                const url = mapsUrl(input.value);
+                if (url) window.open(url, '_blank');
+            });
+
+            tr.querySelectorAll('.control-input').forEach(input => {
+                input.addEventListener('input', () => {
+                    const campo = input.dataset.field;
+                    clearTimeout(input._saveTimer);
+                    input._saveTimer = setTimeout(() => updateControlField(f.id, campo, input.value), 700);
+                });
+                input.addEventListener('change', () => {
+                    updateControlField(f.id, input.dataset.field, input.value);
+                });
+            });
+
             controlTableBody.appendChild(tr);
         });
     });
