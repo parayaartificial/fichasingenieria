@@ -489,7 +489,7 @@ function renderDashboard() {
                 '<div class="dash-section"><div class="dash-section-body" style="text-align:center;padding:40px;">' +
                     '<div style="font-size:2rem;margin-bottom:8px;">&#128203;</div>' +
                     '<h3 style="color:var(--gray-600);margin-bottom:4px;">Sin informes registradas</h3>' +
-                    '<p style="color:var(--gray-400);font-size:0.85rem;">Haga clic en "+ Nueva Informe" para comenzar</p>' +
+                    '<p style="color:var(--gray-400);font-size:0.85rem;">Haga clic en "+ Nuevo Caso" para comenzar</p>' +
                 '</div></div>'
             ));
 
@@ -502,7 +502,7 @@ function renderDashboard() {
 }
 
 // ============ FORM OPERATIONS ============
-function showForm(ficha) {
+function showForm(ficha, esNuevoCaso) {
     emptyState.style.display = 'none';
     viewContainer.style.display = 'none';
     controlContainer.style.display = 'none';
@@ -510,11 +510,11 @@ function showForm(ficha) {
     formContainer.style.animation = 'fadeSlideIn 0.3s ease';
 
     if (ficha) {
-        formTitle.textContent = 'Editar Informe';
+        formTitle.textContent = esNuevoCaso ? 'Nuevo Caso' : 'Editar Informe';
         fichaIdInput.value = ficha.id;
         fillForm(ficha);
     } else {
-        formTitle.textContent = 'Nueva Informe';
+        formTitle.textContent = 'Nuevo Caso';
         fichaForm.reset();
         fichaIdInput.value = '';
         selectSemaforo('');
@@ -869,7 +869,7 @@ function showControlView() {
         controlTableBody.innerHTML = '';
 
         if (fichas.length === 0) {
-            controlTableBody.innerHTML = '<tr><td colspan="11" class="control-empty">No hay informes registrados</td></tr>';
+            controlTableBody.innerHTML = '<tr><td colspan="13" class="control-empty">No hay informes registrados</td></tr>';
             return;
         }
 
@@ -891,23 +891,23 @@ function showControlView() {
                 '</td>' +
                 '<td><select class="control-input control-select" data-field="profesionalCargo" data-id="' + f.id + '"></select></td>' +
                 '<td class="control-derivado">' +
-                    '<div class="control-derivado-wrap">' +
-                        '<select class="control-input control-select" data-field="derivadoPor" data-id="' + f.id + '"></select>' +
-                        '<input type="date" class="control-input" data-field="fechaDerivacion" data-id="' + f.id + '" value="' + (f.fechaDerivacion || '') + '">' +
-                    '</div>' +
+                    '<select class="control-input control-select" data-field="derivadoPor" data-id="' + f.id + '"></select>' +
+                '</td>' +
+                '<td class="control-fecha-derivacion">' +
+                    '<input type="date" class="control-input" data-field="fechaDerivacion" data-id="' + f.id + '" value="' + (f.fechaDerivacion || '') + '">' +
                 '</td>' +
                 '<td><input type="date" class="control-input" data-field="fechaVisita" data-id="' + f.id + '" value="' + (f.fechaVisita || '') + '"></td>' +
                 '<td><input type="date" class="control-input" data-field="fechaEntrega" data-id="' + f.id + '" value="' + (f.fechaEntrega || '') + '"></td>' +
                 '<td class="control-prioridad">' +
-                    '<div class="control-prioridad-wrap">' +
-                        '<select class="control-input control-select" data-field="prioridad" data-id="' + f.id + '">' +
-                            '<option value="">-</option>' +
-                            '<option value="alta">Alta</option>' +
-                            '<option value="media">Media</option>' +
-                            '<option value="baja">Baja</option>' +
-                        '</select>' +
-                        '<span class="control-hours" data-id="' + f.id + '" data-prioridad="' + (f.prioridad || '') + '" data-fechaderivacion="' + (f.fechaDerivacion || '') + '">-</span>' +
-                    '</div>' +
+                    '<select class="control-input control-select" data-field="prioridad" data-id="' + f.id + '">' +
+                        '<option value="">-</option>' +
+                        '<option value="alta">Alta</option>' +
+                        '<option value="media">Media</option>' +
+                        '<option value="baja">Baja</option>' +
+                    '</select>' +
+                '</td>' +
+                '<td class="control-horas">' +
+                    '<span class="control-hours" data-id="' + f.id + '" data-prioridad="' + (f.prioridad || '') + '" data-fechaderivacion="' + (f.fechaDerivacion || '') + '">-</span>' +
                 '</td>' +
                 '<td class="control-ubicacion">' +
                     '<div class="control-ub-wrap">' +
@@ -1364,8 +1364,54 @@ btnCancel.addEventListener('click', () => {
 
 // ============ NEW FICHA ============
 btnNewFicha.addEventListener('click', () => {
+    if (btnNewFicha.disabled) return;
+    btnNewFicha.disabled = true;
     currentViewId = null;
-    showForm(null);
+    const id = generateId();
+    Promise.all([getNextRegistroNum(), getNextCodigoSeguimiento()]).then(([registroNum, codigoSeguimiento]) => {
+        const nuevoCaso = {
+            id: id,
+            semaforo: '',
+            tipoEmergencia: '',
+            registroNum: registroNum,
+            sector: '',
+            calle: '',
+            fechaVisita: '',
+            nombreAfectado: '',
+            fono: '',
+            rut: '',
+            visitaCon: '',
+            reporteConcluyente: '',
+            conclusion: '',
+            descripcion: '',
+            codigoSeguimiento: codigoSeguimiento,
+            sectorial: '',
+            sectorialPersona: '',
+            sectorialCorreo: '',
+            sectorialTelefono: '',
+            profesionalCargo: '',
+            derivadoPor: '',
+            prioridad: '',
+            ubicacionGeo: '',
+            fechaDerivacion: '',
+            fechaEntrega: '',
+            causas: [],
+            peligrosidad: [],
+            recomendaciones: [],
+            imagenesAntes: [],
+            imagenesDespues: [],
+            imagenes: [],
+            fechaCreacion: Date.now(),
+            fechaModificacion: Date.now()
+        };
+        return loadFichas().then(fichas => {
+            fichas.push(nuevoCaso);
+            return saveFichas(fichas);
+        }).then(() => {
+            btnNewFicha.disabled = false;
+            showForm(nuevoCaso, true);
+        });
+    }).catch(() => { btnNewFicha.disabled = false; });
     closeSidebarMobile();
 });
 
@@ -1469,15 +1515,15 @@ importFileInput.addEventListener('change', (e) => {
 
 // ============ MOBILE SIDEBAR ============
 btnToggleSidebar.addEventListener('click', () => {
-    const sidebar = $('#sidebar');
-    sidebar.classList.toggle('open');
+    const panel = $('#informesPanel');
+    panel.classList.toggle('open');
     overlay.classList.toggle('active');
 });
 
 overlay.addEventListener('click', closeSidebarMobile);
 
 function closeSidebarMobile() {
-    $('#sidebar').classList.remove('open');
+    $('#informesPanel').classList.remove('open');
     overlay.classList.remove('active');
 }
 

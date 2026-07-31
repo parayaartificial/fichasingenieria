@@ -6,7 +6,7 @@
     <title>Informes de Emergencia - Ingenieria Municipal</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -38,7 +38,7 @@
 
 <!-- ============ MAIN APP ============ -->
 <div class="app-container" id="appContainer" style="display:none;">
-    <aside class="sidebar" id="sidebar">
+    <header class="topbar" id="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-brand">
                 <div class="brand-icon">EM</div>
@@ -47,7 +47,7 @@
                     <span class="brand-sub">Ingenieria Municipal</span>
                 </div>
             </div>
-            <button type="button" class="btn btn-primary btn-new" id="btnNewInforme" data-role="admin,creador">+ Nueva Informe</button>
+            <button type="button" class="btn btn-primary btn-new" id="btnNewInforme" data-role="admin,creador">+ Nuevo Caso</button>
         </div>
 
         <div class="sidebar-user" id="sidebarUser">
@@ -64,7 +64,7 @@
         </div>
 
         <div class="sidebar-controls">
-            <button type="button" class="btn btn-secondary btn-full" id="btnControlDoc" title="Control documental de informes">
+            <button type="button" class="btn btn-secondary" id="btnControlDoc" title="Control documental de informes">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 Control Documental
             </button>
@@ -82,10 +82,6 @@
 
         <div class="sidebar-stats" id="sidebarStats"></div>
 
-        <div class="informes-list" id="informesList">
-            <p class="empty-msg" id="emptyMsg">No hay informes registradas</p>
-        </div>
-
         <div class="sidebar-footer">
             <button type="button" class="btn btn-ghost btn-sm" id="btnExportData" title="Exportar datos" data-role="admin">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -101,9 +97,16 @@
                 Usuarios
             </button>
         </div>
-    </aside>
+    </header>
 
-    <main class="main-panel" id="mainPanel">
+    <div class="app-body">
+        <aside class="informes-panel" id="informesPanel">
+            <div class="informes-list" id="informesList">
+                <p class="empty-msg" id="emptyMsg">No hay informes registradas</p>
+            </div>
+        </aside>
+
+        <main class="main-panel" id="mainPanel">
         <div class="mobile-header" id="mobileHeader">
             <button type="button" class="btn btn-ghost" id="btnToggleSidebar">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -117,7 +120,7 @@
 
         <div class="form-container" id="formContainer" style="display:none;">
             <div class="form-header">
-                <h2 id="formTitle">Nueva Informe</h2>
+                <h2 id="formTitle">Nuevo Caso</h2>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" id="btnCancel">Cancelar</button>
                     <button type="button" class="btn btn-success" id="btnSave" data-role="admin,creador,editor">Guardar Informe</button>
@@ -363,10 +366,12 @@
                             <th>N&ordm; Seg.</th>
                             <th>Sectorial</th>
                             <th>Profesional</th>
-                            <th>Derivado / F. Derivacion</th>
+                            <th>Derivado</th>
+                            <th>F. Derivacion</th>
                             <th>F. Visita</th>
                             <th>F. Entrega</th>
-                            <th>Prioridad / Horas</th>
+                            <th>Prioridad</th>
+                            <th>Horas</th>
                             <th>Ubicacion</th>
                             <th>Acciones</th>
                         </tr>
@@ -376,6 +381,7 @@
             </div>
         </div>
     </main>
+    </div>
 </div>
 
 <!-- ============ USER MANAGEMENT MODAL ============ -->
@@ -432,6 +438,6 @@
     </div>
 </div>
 
-<script src="app.js"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>
