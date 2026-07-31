@@ -64,6 +64,10 @@
         </div>
 
         <div class="sidebar-controls">
+            <button type="button" class="btn btn-secondary btn-full" id="btnControlDoc" title="Control documental de informes">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Control Documental
+            </button>
             <div class="search-box">
                 <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 <input type="text" id="searchInput" placeholder="Buscar por sector, calle, nombre...">
@@ -221,6 +225,44 @@
                 </section>
 
                 <section class="form-section">
+                    <h3>Control Documental</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="numeroSeguimiento">Numero de Seguimiento</label>
+                            <input type="text" id="numeroSeguimiento" placeholder="Codigo de seguimiento">
+                        </div>
+                        <div class="form-group">
+                            <label for="motivoInforme">Motivo del Informe</label>
+                            <input type="text" id="motivoInforme" placeholder="Ej: Inspeccion post incendio">
+                        </div>
+                        <div class="form-group">
+                            <label for="quienTieneDoc">Quien Tiene el Documento</label>
+                            <input type="text" id="quienTieneDoc" placeholder="Persona u oficina que custodia el documento">
+                        </div>
+                        <div class="form-group">
+                            <label for="quienRevisa">Quien Debe Revisar</label>
+                            <input type="text" id="quienRevisa" placeholder="Persona encargada de revisar el informe">
+                        </div>
+                        <div class="form-group">
+                            <label for="profesionalCargo">Profesional a Cargo</label>
+                            <input type="text" id="profesionalCargo" placeholder="Profesional responsable del informe">
+                        </div>
+                        <div class="form-group">
+                            <label for="ubicacionGeo">Ubicacion Georeferenciada</label>
+                            <input type="text" id="ubicacionGeo" placeholder="Ej: -36.8270, -73.0503 o direccion">
+                        </div>
+                        <div class="form-group">
+                            <label for="fechaDerivacion">Fecha de Derivacion</label>
+                            <input type="date" id="fechaDerivacion">
+                        </div>
+                        <div class="form-group">
+                            <label for="fechaEntrega">Fecha de Entrega de Informe</label>
+                            <input type="date" id="fechaEntrega">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
                     <h3>Descripcion de la Emergencia</h3>
                     <div class="form-grid">
                         <div class="form-group full-width">
@@ -333,6 +375,36 @@
                 </div>
             </div>
             <div id="pdfContent" class="pdf-content"></div>
+        </div>
+
+        <div class="control-container" id="controlContainer" style="display:none;">
+            <div class="form-header">
+                <h2>Control Documental</h2>
+                <p class="control-subtitle">Seguimiento de informes creados</p>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnBackFromControl">Volver</button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="control-table">
+                    <thead>
+                        <tr>
+                            <th>N&ordm;</th>
+                            <th>Motivo</th>
+                            <th>N&ordm; Seg.</th>
+                            <th>Quien Tiene</th>
+                            <th>Quien Revisa</th>
+                            <th>Profesional a Cargo</th>
+                            <th>Fecha Derivacion</th>
+                            <th>Fecha Visita</th>
+                            <th>Fecha Entrega</th>
+                            <th>Ubicacion</th>
+                            <th>Informe</th>
+                        </tr>
+                    </thead>
+                    <tbody id="controlTableBody"></tbody>
+                </table>
+            </div>
         </div>
     </main>
 </div>

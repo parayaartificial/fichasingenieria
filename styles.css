@@ -694,6 +694,8 @@ body {
 
 .btn-sm { padding: 6px 12px; font-size: 0.75rem; }
 
+.btn-full { width: 100%; justify-content: center; }
+
 .btn-add {
     background: transparent;
     color: var(--primary);
@@ -911,7 +913,7 @@ body {
 .dash-recent-item:hover { background: var(--gray-50); margin: 0 -20px; padding: 10px 20px; }
 
 /* ============ FORM ============ */
-.form-container, .view-container {
+.form-container, .view-container, .control-container {
     padding: 24px 30px;
     animation: fadeSlideIn 0.3s ease;
 }
@@ -939,6 +941,71 @@ body {
 .form-actions {
     display: flex;
     gap: 8px;
+}
+
+/* ============ CONTROL DOCUMENTAL ============ */
+.control-subtitle {
+    font-size: 0.82rem;
+    color: var(--gray-400);
+    margin: 4px 0 0;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    background: white;
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+}
+
+.control-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    min-width: 1100px;
+}
+
+.control-table thead th {
+    background: var(--gray-50);
+    color: var(--gray-600);
+    font-weight: 700;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 2px solid var(--gray-200);
+    white-space: nowrap;
+}
+
+.control-table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--gray-100);
+    color: var(--gray-700);
+    vertical-align: top;
+}
+
+.control-table tbody tr:hover { background: var(--gray-50); }
+.control-table tbody tr:last-child td { border-bottom: none; }
+
+.control-num {
+    font-weight: 700;
+    color: var(--gray-800);
+    white-space: nowrap;
+}
+
+.control-map-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.control-map-link:hover { text-decoration: underline; }
+
+.control-empty {
+    text-align: center;
+    padding: 40px !important;
+    color: var(--gray-400);
+    font-size: 0.85rem;
 }
 
 /* Semaforo Selector */
@@ -1492,7 +1559,7 @@ h1, h2, h3, .form-section h3 {
         width: 100%;
     }
 
-    .form-container, .view-container {
+    .form-container, .view-container, .control-container {
         padding: 16px;
     }
 
@@ -1605,7 +1672,7 @@ h1, h2, h3, .form-section h3 {
 @media (max-width: 360px) {
     .sidebar { width: 260px; min-width: 260px; left: -260px; }
     .login-card { padding: 24px 16px; }
-    .form-container, .view-container { padding: 12px; }
+    .form-container, .view-container, .control-container { padding: 12px; }
     .pdf-content { padding: 12px; }
 }
 
@@ -1659,7 +1726,7 @@ select:focus-visible {
 
     .login-card { animation: none; }
     .login-screen { animation: none; }
-    .form-container, .view-container { animation: none; }
+    .form-container, .view-container, .control-container { animation: none; }
     .dynamic-item { animation: none; }
     .image-preview-item { animation: none; }
     .modal-card { animation: none; }

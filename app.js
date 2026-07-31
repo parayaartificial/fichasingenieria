@@ -28,6 +28,8 @@ const fichasList = $('#informesList');
 const emptyState = $('#emptyState');
 const formContainer = $('#formContainer');
 const viewContainer = $('#viewContainer');
+const controlContainer = $('#controlContainer');
+const controlTableBody = $('#controlTableBody');
 const formTitle = $('#formTitle');
 const fichaForm = $('#informeForm');
 const fichaIdInput = $('#informeId');
@@ -42,6 +44,8 @@ const btnNewFicha = $('#btnNewInforme');
 const btnCancel = $('#btnCancel');
 const btnSave = $('#btnSave');
 const btnBackToList = $('#btnBackToList');
+const btnControlDoc = $('#btnControlDoc');
+const btnBackFromControl = $('#btnBackFromControl');
 const btnEditFromView = $('#btnEditFromView');
 const btnDeleteFromView = $('#btnDeleteFromView');
 const btnExportPdf = $('#btnExportPdf');
@@ -440,6 +444,7 @@ function renderDashboard() {
 function showForm(ficha) {
     emptyState.style.display = 'none';
     viewContainer.style.display = 'none';
+    controlContainer.style.display = 'none';
     formContainer.style.display = '';
     formContainer.style.animation = 'fadeSlideIn 0.3s ease';
 
@@ -490,6 +495,14 @@ function fillForm(f) {
 
     $('#conclusion').value = f.conclusion || '';
     $('#descripcion').value = f.descripcion || '';
+    $('#numeroSeguimiento').value = f.numeroSeguimiento || '';
+    $('#motivoInforme').value = f.motivoInforme || '';
+    $('#quienTieneDoc').value = f.quienTieneDoc || '';
+    $('#quienRevisa').value = f.quienRevisa || '';
+    $('#profesionalCargo').value = f.profesionalCargo || '';
+    $('#ubicacionGeo').value = f.ubicacionGeo || '';
+    $('#fechaDerivacion').value = f.fechaDerivacion || '';
+    $('#fechaEntrega').value = f.fechaEntrega || '';
 
     setDynamicList(causasList, f.causas);
     setDynamicList(peligrosidadList, f.peligrosidad);
@@ -530,6 +543,14 @@ function getFormData() {
         reporteConcluyente: reporteRadio ? reporteRadio.value : '',
         conclusion: $('#conclusion').value.trim(),
         descripcion: $('#descripcion').value.trim(),
+        numeroSeguimiento: $('#numeroSeguimiento').value.trim(),
+        motivoInforme: $('#motivoInforme').value.trim(),
+        quienTieneDoc: $('#quienTieneDoc').value.trim(),
+        quienRevisa: $('#quienRevisa').value.trim(),
+        profesionalCargo: $('#profesionalCargo').value.trim(),
+        ubicacionGeo: $('#ubicacionGeo').value.trim(),
+        fechaDerivacion: $('#fechaDerivacion').value,
+        fechaEntrega: $('#fechaEntrega').value,
         causas: getDynamicListValues(causasList),
         peligrosidad: getDynamicListValues(peligrosidadList),
         recomendaciones: getDynamicListValues(recomendacionesList),
@@ -694,12 +715,61 @@ function viewFicha(id) {
         currentViewId = id;
         emptyState.style.display = 'none';
         formContainer.style.display = 'none';
+        controlContainer.style.display = 'none';
         viewContainer.style.display = '';
         viewContainer.style.animation = 'fadeSlideIn 0.3s ease';
 
         renderPdfContent(ficha);
         renderFichasList();
         viewContainer.scrollIntoView({ behavior: 'smooth' });
+    });
+}
+
+// ============ CONTROL DOCUMENTAL ============
+function mapsUrl(value) {
+    const coords = value.trim().match(/^-?\d+\.?\d*,\s*-?\d+\.?\d*$/);
+    if (coords) return 'https://www.google.com/maps?q=' + encodeURIComponent(value.trim());
+    return 'https://www.google.com/maps?q=' + encodeURIComponent(value);
+}
+
+function showControlView() {
+    emptyState.style.display = 'none';
+    formContainer.style.display = 'none';
+    viewContainer.style.display = 'none';
+    controlContainer.style.display = '';
+    controlContainer.style.animation = 'fadeSlideIn 0.3s ease';
+
+    loadFichas().then(fichas => {
+        fichas.sort((a, b) => (b.fechaCreacion || 0) - (a.fechaCreacion || 0));
+        controlTableBody.innerHTML = '';
+
+        if (fichas.length === 0) {
+            controlTableBody.innerHTML = '<tr><td colspan="11" class="control-empty">No hay informes registrados</td></tr>';
+            return;
+        }
+
+        fichas.forEach(f => {
+            const fechaFmt = (d) => d ? new Date(d).toLocaleDateString('es-CL') : '-';
+            const ub = f.ubicacionGeo || '';
+            const ubHtml = ub
+                ? '<a href="' + mapsUrl(ub) + '" target="_blank" rel="noopener" class="control-map-link" title="Abrir en Google Maps">' + escapeHtml(ub) + '</a>'
+                : '-';
+            const tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td class="control-num">' + (f.registroNum || '-') + '</td>' +
+                '<td>' + escapeHtml(f.motivoInforme || '-') + '</td>' +
+                '<td>' + escapeHtml(f.numeroSeguimiento || '-') + '</td>' +
+                '<td>' + escapeHtml(f.quienTieneDoc || '-') + '</td>' +
+                '<td>' + escapeHtml(f.quienRevisa || '-') + '</td>' +
+                '<td>' + escapeHtml(f.profesionalCargo || '-') + '</td>' +
+                '<td>' + fechaFmt(f.fechaDerivacion) + '</td>' +
+                '<td>' + fechaFmt(f.fechaVisita) + '</td>' +
+                '<td>' + fechaFmt(f.fechaEntrega) + '</td>' +
+                '<td>' + ubHtml + '</td>' +
+                '<td><button type="button" class="btn btn-primary btn-sm" data-open="' + f.id + '">Ver</button></td>';
+            tr.querySelector('[data-open]').addEventListener('click', () => viewFicha(f.id));
+            controlTableBody.appendChild(tr);
+        });
     });
 }
 
@@ -958,6 +1028,20 @@ btnSave.addEventListener('click', () => {
         console.error('Error guardando ficha:', e);
         alert('Error al guardar: ' + (e.message || 'Error desconocido'));
     }
+});
+
+// ============ CONTROL DOCUMENTAL NAV ============
+btnControlDoc.addEventListener('click', () => {
+    showControlView();
+    closeSidebarMobile();
+});
+
+btnBackFromControl.addEventListener('click', () => {
+    controlContainer.style.display = 'none';
+    emptyState.style.display = '';
+    currentViewId = null;
+    renderFichasList();
+    renderDashboard();
 });
 
 // ============ CANCEL ============
