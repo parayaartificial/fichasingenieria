@@ -70,49 +70,33 @@ let currentImagesAntes = [];
 let currentImagesDespues = [];
 let currentUser = null;
 
-// ============ CONTROL DOCUMENTAL - DATOS MAESTROS ============
-const SECTORES = {
-    'Collao': [
-        { nombre: 'Rogelio Escalona', correo: 'rescalona@concepcion.cl', telefono: '987282050' },
-        { nombre: 'Claudio San Martin', correo: 'csanmartin@concepcion.cl', telefono: '929397904' },
-        { nombre: 'Luis Subiabre', correo: 'luisubiabre@gmail.com', telefono: '988820164' },
-        { nombre: 'Estefania Conejeros', correo: '', telefono: '956973779' }
-    ],
-    'Rural': [
-        { nombre: 'Julio Andrades (delegado)', correo: 'julio.andrades@concepcion.cl', telefono: '985105137' },
-        { nombre: 'Jose Lizama', correo: 'jlizama@concepcion.cl', telefono: '996095230' },
-        { nombre: 'Gabriel Torres H', correo: 'gabrieltorres.municonce@gmail.com', telefono: '952292838' }
-    ],
-    'Barrio Norte': [
-        { nombre: 'Jorge Sepulveda (delegado)', correo: 'jorge.sepulveda@concepcion.cl', telefono: '989868776' },
-        { nombre: 'Michelle Vera', correo: 'mvera@concepcion.cl', telefono: '981858707' },
-        { nombre: 'Carolina Gutierrez', correo: 'carigutierrez.nutricion@gmail.com', telefono: '988809583' },
-        { nombre: 'Rocio Bruna', correo: 'bruna.rocio.b@gmail.com', telefono: '926271642' },
-        { nombre: 'Miguel Carrillo', correo: 'Mac.s.16@hotmail.com', telefono: '983819010' }
-    ],
-    'Lorenzo Arenas': [
-        { nombre: 'Hugo Rodriguez (delegado)', correo: 'hrodriguez@concepcion.cl', telefono: '966345728' },
-        { nombre: 'Ana Bastias', correo: 'abastias@concepcion.cl', telefono: '981564284' },
-        { nombre: 'Aydee Sandoval', correo: 'asandoval@concepcion.cl', telefono: '951942478' },
-        { nombre: 'Mauricio Rodriguez', correo: 'mauricio.rodriguez@concepcion.cl', telefono: '927553445' }
-    ],
-    'Centro': [
-        { nombre: 'Yonathan Quidel', correo: 'yquidel@concepcion.cl', telefono: '995786311' },
-        { nombre: 'Pia Cordes', correo: 'pcordes@concepcion.cl', telefono: '989989436' },
-        { nombre: 'Nicole Vidal', correo: 'nvidal@concepcion.cl', telefono: '930738977' },
-        { nombre: 'Valeria Olea', correo: 'Valeria.olea@concepcion.cl', telefono: '967532205' }
-    ]
-};
-
-const DERIVADOS = [
-    'Victor Lobos', 'Eduardo Cancino SECPLAN', 'Francisco Ojeda SECPLAN', 'Mario Pereira',
-    'Alberto Jarpa', 'Felipe Valdebenito', 'Daniel Muñoz', 'Andres Herrera', 'Adrian Vargas',
-    'Susana Carrasco'
+// ============ CONTROL DOCUMENTAL - VALIDACIÓN ============
+const CONTROL_REQUERIDOS = [
+    { campo: 'sectorial', label: 'Sectorial (delegación)' },
+    { campo: 'sectorialPersona', label: 'Encargado del sector' },
+    { campo: 'profesionalCargo', label: 'Profesional a cargo' },
+    { campo: 'derivadoPor', label: 'Derivado por' },
+    { campo: 'prioridad', label: 'Prioridad' },
+    { campo: 'fechaDerivacion', label: 'Fecha de derivación' },
+    { campo: 'fechaVisita', label: 'Fecha de visita' },
+    { campo: 'fechaEntrega', label: 'Fecha de entrega' },
+    { campo: 'ubicacionGeo', label: 'Ubicación georeferenciada' }
 ];
 
-const PROFESIONALES = ['Marcela Flores', 'Mauricio Enriquez'];
+const ESTADO_LABELS = { pendiente: 'Pendiente', listo: 'Listo', generado: 'Generado' };
 
-const PRIORIDAD_LIMITES = { alta: 48, media: 72, baja: 96 };
+function getFaltantesControl(f) {
+    return CONTROL_REQUERIDOS.filter(r => !String(f[r.campo] || '').trim());
+}
+
+function estadoControl(f) {
+    if (getFaltantesControl(f).length > 0) return 'pendiente';
+    return f.fechaGeneracion ? 'generado' : 'listo';
+}
+
+function normAcc(s) {
+    return (s || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
 
 
 // ============ AUTH SYSTEM ============
@@ -260,8 +244,15 @@ function renderCredentials() {
 }
 
 // ============ FIRESTORE (con localStorage como cache) ============
+function withTimeout(promise, ms) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout_firestore')), ms || 10000))
+    ]);
+}
+
 function loadFichas() {
-    return db_firestore.collection('fichas').get().then(snapshot => {
+    return withTimeout(db_firestore.collection('fichas').get(), 10000).then(snapshot => {
         const fichas = [];
         snapshot.forEach(doc => fichas.push({ id: doc.id, ...doc.data() }));
         localStorage.setItem(STORAGE_KEY, JSON.stringify(fichas));
@@ -272,7 +263,7 @@ function loadFichas() {
 }
 
 function saveFichas(fichas) {
-    return db_firestore.collection('fichas').get().then(snapshot => {
+    return withTimeout(db_firestore.collection('fichas').get(), 10000).then(snapshot => {
         const batch = db_firestore.batch();
         const existingIds = new Set();
         snapshot.forEach(doc => existingIds.add(doc.id));
@@ -347,7 +338,7 @@ function renderFichasList() {
         renderSidebarStats(fichas);
 
         if (filtered.length === 0) {
-            fichasList.innerHTML = '<p class="empty-msg">' + (fichas.length === 0 ? 'No hay informes registradas' : 'No se encontraron resultados') + '</p>';
+            fichasList.innerHTML = '<p class="empty-msg">' + (fichas.length === 0 ? 'No hay informes registrados' : 'No se encontraron resultados') + '</p>';
             return;
         }
 
@@ -360,15 +351,24 @@ function renderFichasList() {
 
             const fecha = f.fechaVisita ? new Date(f.fechaVisita).toLocaleDateString('es-CL') : 'Sin fecha';
             const sector = f.sector || 'Sin sector';
+            const estado = estadoControl(f);
 
             card.innerHTML =
-                '<div class="ficha-card-header">' +
-                    '<span class="ficha-card-dot ' + (f.semaforo || '') + '"></span>' +
-                    '<span class="ficha-card-title">' + escapeHtml(sector) + '</span>' +
+                '<div class="semaforo-post" aria-hidden="true">' +
+                    '<span class="verde"></span>' +
+                    '<span class="amarillo"></span>' +
+                    '<span class="rojo"></span>' +
                 '</div>' +
-                '<div class="ficha-card-meta">' +
-                    '<span class="ficha-card-reg">N&ordm; ' + (f.registroNum || '-') + '</span>' +
-                    '<span>' + fecha + '</span>' +
+                '<div class="ficha-card-content">' +
+                    '<div class="ficha-card-header">' +
+                        '<span class="ficha-card-dot ' + (f.semaforo || '') + '"></span>' +
+                        '<span class="ficha-card-title">' + escapeHtml(sector) + '</span>' +
+                        '<span class="estado-badge ' + estado + '">' + ESTADO_LABELS[estado] + '</span>' +
+                    '</div>' +
+                    '<div class="ficha-card-meta">' +
+                        '<span class="ficha-card-reg">N&ordm; ' + (f.registroNum || '-') + '</span>' +
+                        '<span>' + fecha + '</span>' +
+                    '</div>' +
                 '</div>';
 
             card.addEventListener('click', () => viewFicha(f.id));
@@ -423,7 +423,7 @@ function renderDashboard() {
         dashboardContainer.innerHTML =
             '<div class="dash-header">' +
                 '<h1>Panel de Control</h1>' +
-                '<p>Resumen de informes de emergencia registradas</p>' +
+                '<p>Resumen de informes de emergencia registrados</p>' +
             '</div>' +
 
             '<div class="dash-kpi-grid">' +
@@ -457,7 +457,7 @@ function renderDashboard() {
                 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">' +
 
                 '<div class="dash-section">' +
-                    '<div class="dash-section-header"><span class="dash-section-title">Distribucion por Semaforo</span></div>' +
+                    '<div class="dash-section-header"><span class="dash-section-title">Distribución por Semáforo</span></div>' +
                     '<div class="dash-section-body">' +
                         '<div class="dash-donut-container">' +
                             '<div class="dash-donut">' +
@@ -478,7 +478,7 @@ function renderDashboard() {
                 '</div>' +
 
                 '<div class="dash-section">' +
-                    '<div class="dash-section-header"><span class="dash-section-title">Ultimos Informes</span></div>' +
+                    '<div class="dash-section-header"><span class="dash-section-title">Últimos Informes</span></div>' +
                     '<div class="dash-section-body" style="padding:8px 20px;">' +
                         (recentHtml || '<p class="empty-msg">Sin informes recientes</p>') +
                     '</div>' +
@@ -488,7 +488,7 @@ function renderDashboard() {
             ) : (
                 '<div class="dash-section"><div class="dash-section-body" style="text-align:center;padding:40px;">' +
                     '<div style="font-size:2rem;margin-bottom:8px;">&#128203;</div>' +
-                    '<h3 style="color:var(--gray-600);margin-bottom:4px;">Sin informes registradas</h3>' +
+                    '<h3 style="color:var(--gray-600);margin-bottom:4px;">Sin informes registrados</h3>' +
                     '<p style="color:var(--gray-400);font-size:0.85rem;">Haga clic en "+ Nuevo Caso" para comenzar</p>' +
                 '</div></div>'
             ));
@@ -769,6 +769,14 @@ function viewFicha(id) {
         viewContainer.style.display = '';
         viewContainer.style.animation = 'fadeSlideIn 0.3s ease';
 
+        const estado = estadoControl(ficha);
+        const pill = $('#vistaEstado');
+        if (pill) {
+            pill.style.display = '';
+            pill.className = 'vista-estado ' + estado;
+            pill.textContent = 'Control: ' + ESTADO_LABELS[estado];
+        }
+
         renderPdfContent(ficha);
         renderFichasList();
         viewContainer.scrollIntoView({ behavior: 'smooth' });
@@ -869,7 +877,7 @@ function showControlView() {
         controlTableBody.innerHTML = '';
 
         if (fichas.length === 0) {
-            controlTableBody.innerHTML = '<tr><td colspan="13" class="control-empty">No hay informes registrados</td></tr>';
+            controlTableBody.innerHTML = '<tr><td colspan="14" class="control-empty">No hay informes registrados</td></tr>';
             return;
         }
 
@@ -877,11 +885,13 @@ function showControlView() {
             const motivo = extractMotivo(f.descripcion);
             const tr = document.createElement('tr');
             const contacto = getContacto(f.sectorial || '', f.sectorialPersona || '');
+            const estado = estadoControl(f);
 
             tr.innerHTML =
                 '<td class="control-num">' + (f.registroNum || '-') + '</td>' +
                 '<td class="control-motivo" title="' + escapeHtml(f.descripcion || '') + '">' + escapeHtml(motivo) + '</td>' +
                 '<td class="control-seg" title="' + escapeHtml(f.id) + '">' + escapeHtml(f.codigoSeguimiento || '-') + '</td>' +
+                '<td class="control-estado"><span class="estado-badge ' + estado + '">' + ESTADO_LABELS[estado] + '</span></td>' +
                 '<td class="control-sectorial">' +
                     '<div class="control-sectorial-wrap">' +
                         '<select class="control-input control-select" data-field="sectorial" data-id="' + f.id + '"></select>' +
@@ -923,6 +933,7 @@ function showControlView() {
             const sectorSel = tr.querySelector('[data-field="sectorial"]');
             const personaSel = tr.querySelector('[data-field="sectorialPersona"]');
             const contactoEl = tr.querySelector('[data-contacto]');
+            if (estado === 'pendiente') tr.classList.add('row-pendiente');
             llenarSelect(sectorSel, Object.keys(SECTORES), f.sectorial || '');
             llenarSelect(personaSel, (SECTORES[f.sectorial] || []).map(p => p.nombre), f.sectorialPersona || '');
             llenarSelect(tr.querySelector('[data-field="profesionalCargo"]'), PROFESIONALES, f.profesionalCargo || '');
@@ -979,12 +990,16 @@ function showControlView() {
                             updateHorasCells();
                         }
                         updateControlField(f.id, el.dataset.field, el.value);
+                        actualizarEstadoFila(tr, f.id);
                     });
                 } else {
                     el.addEventListener('input', () => {
                         const campo = el.dataset.field;
                         clearTimeout(el._saveTimer);
-                        el._saveTimer = setTimeout(() => updateControlField(f.id, campo, el.value), 700);
+                        el._saveTimer = setTimeout(() => {
+                            updateControlField(f.id, campo, el.value);
+                            actualizarEstadoFila(tr, f.id);
+                        }, 700);
                     });
                     el.addEventListener('change', () => {
                         const horasEl = tr.querySelector('.control-hours');
@@ -993,6 +1008,7 @@ function showControlView() {
                             updateHorasCells();
                         }
                         updateControlField(f.id, el.dataset.field, el.value);
+                        actualizarEstadoFila(tr, f.id);
                     });
                 }
             });
@@ -1002,6 +1018,22 @@ function showControlView() {
 
         updateHorasCells();
     });
+}
+
+function actualizarEstadoFila(tr, fichaId) {
+    const valores = {};
+    tr.querySelectorAll('[data-field]').forEach(el => {
+        if (el.tagName === 'SELECT' || el.tagName === 'INPUT') valores[el.dataset.field] = el.value;
+    });
+    const fActual = loadFichasSync().find(x => x.id === fichaId) || {};
+    valores.fechaGeneracion = fActual.fechaGeneracion;
+    const estado = estadoControl(valores);
+    const badge = tr.querySelector('.control-estado .estado-badge');
+    if (badge) {
+        badge.className = 'estado-badge ' + estado;
+        badge.textContent = ESTADO_LABELS[estado];
+    }
+    tr.classList.toggle('row-pendiente', estado === 'pendiente');
 }
 
 function generarInforme(tr, fichaId) {
@@ -1017,6 +1049,16 @@ function generarInforme(tr, fichaId) {
     const datos = getContacto(sector, persona);
     campos.sectorialCorreo = datos ? datos.correo : '';
     campos.sectorialTelefono = datos ? datos.telefono : '';
+
+    const faltantes = getFaltantesControl(campos);
+    if (faltantes.length > 0) {
+        showToast('No es posible generar el informe: complete el control documental.\n\n' + faltantes.map(x => '· ' + x.label).join('\n'), 'error');
+        actualizarEstadoFila(tr, fichaId);
+        tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    campos.fechaGeneracion = Date.now();
     updateControlFields(fichaId, campos).then(() => viewFicha(fichaId));
 }
 
@@ -1072,11 +1114,11 @@ setInterval(updateHorasCells, 60000);
 function renderPdfContent(f) {
     const semaforoLabels = {
         verde: 'VERDE - HABITABLE',
-        amarillo: 'AMARILLO - HABITABLE CON MITIGACION',
+        amarillo: 'AMARILLO - HABITABLE CON MITIGACIÓN',
         rojo: 'ROJO - INHABITABLE'
     };
 
-    const reporteOptions = ['HABITABLE', 'HABITABLE CON TRABAJOS DE MITIGACION', 'INHABITABLE. EVACUAR, NO RECUPERABLE'];
+    const reporteOptions = ['HABITABLE', 'HABITABLE CON TRABAJOS DE MITIGACIÓN', 'INHABITABLE. EVACUAR, NO RECUPERABLE'];
 
     var causasHtml = '';
     if (f.causas && f.causas.length > 0) {
@@ -1100,7 +1142,7 @@ function renderPdfContent(f) {
     }
 
     const reporteChecks = reporteOptions.map(opt => {
-        const checked = f.reporteConcluyente === opt;
+        const checked = normAcc(f.reporteConcluyente) === normAcc(opt);
         return '<div class="pdf-checkbox">' +
             '<span class="pdf-check ' + (checked ? 'checked' : '') + '"></span>' +
             '<span>' + opt + '</span></div>';
@@ -1129,7 +1171,7 @@ function renderPdfContent(f) {
     if (imgsAntes.length > 0) {
         imagenesAntesBlock =
             '<div class="pdf-section">' +
-            '<div class="pdf-section-title">Evidencia Fotografica - Antes de la Visita</div>' +
+            '<div class="pdf-section-title">Evidencia Fotográfica - Antes de la Visita</div>' +
             '<div class="pdf-images-grid">' +
             imgsAntes.map(img =>
                 '<div class="pdf-image-item">' +
@@ -1145,7 +1187,7 @@ function renderPdfContent(f) {
     if (imgsDespues.length > 0) {
         imagenesDespuesBlock =
             '<div class="pdf-section">' +
-            '<div class="pdf-section-title">Evidencia Fotografica - Despues de la Visita</div>' +
+            '<div class="pdf-section-title">Evidencia Fotográfica - Después de la Visita</div>' +
             '<div class="pdf-images-grid">' +
             imgsDespues.map(img =>
                 '<div class="pdf-image-item">' +
@@ -1172,19 +1214,19 @@ function renderPdfContent(f) {
 
         '<div class="pdf-section">' +
             '<div class="pdf-section-title">Control Documental</div>' +
-            '<div class="pdf-row"><span class="pdf-label">Codigo de Seguimiento:</span><span class="pdf-value">' + escapeHtml(f.codigoSeguimiento || '-') + '</span></div>' +
+            '<div class="pdf-row"><span class="pdf-label">Código de Seguimiento:</span><span class="pdf-value">' + escapeHtml(f.codigoSeguimiento || '-') + '</span></div>' +
             '<div class="pdf-row"><span class="pdf-label">Sectorial:</span><span class="pdf-value">' + escapeHtml(f.sectorial || '-') + '</span></div>' +
             '<div class="pdf-row"><span class="pdf-label">Encargado:</span><span class="pdf-value">' + escapeHtml(f.sectorialPersona || '-') + (f.sectorialCorreo ? ' - ' + escapeHtml(f.sectorialCorreo) : '') + (f.sectorialTelefono ? ' - ' + escapeHtml(f.sectorialTelefono) : '') + '</span></div>' +
             '<div class="pdf-row"><span class="pdf-label">Profesional a Cargo:</span><span class="pdf-value">' + escapeHtml(f.profesionalCargo || '-') + '</span></div>' +
             '<div class="pdf-row"><span class="pdf-label">Derivado por:</span><span class="pdf-value">' + escapeHtml(f.derivadoPor || '-') + '</span></div>' +
             '<div class="pdf-row"><span class="pdf-label">Prioridad:</span><span class="pdf-value">' + escapeHtml(f.prioridad ? f.prioridad.charAt(0).toUpperCase() + f.prioridad.slice(1) : '-') + '</span></div>' +
-            '<div class="pdf-row"><span class="pdf-label">Fecha de Derivacion:</span><span class="pdf-value">' + (f.fechaDerivacion ? new Date(f.fechaDerivacion).toLocaleDateString('es-CL') : '-') + '</span></div>' +
+            '<div class="pdf-row"><span class="pdf-label">Fecha de Derivación:</span><span class="pdf-value">' + (f.fechaDerivacion ? new Date(f.fechaDerivacion).toLocaleDateString('es-CL') : '-') + '</span></div>' +
             '<div class="pdf-row"><span class="pdf-label">Fecha de Entrega:</span><span class="pdf-value">' + (f.fechaEntrega ? new Date(f.fechaEntrega).toLocaleDateString('es-CL') : '-') + '</span></div>' +
-            '<div class="pdf-row"><span class="pdf-label">Ubicacion Geo:</span><span class="pdf-value">' + escapeHtml(f.ubicacionGeo || '-') + '</span></div>' +
+            '<div class="pdf-row"><span class="pdf-label">Ubicación Georreferenciada:</span><span class="pdf-value">' + escapeHtml(f.ubicacionGeo || '-') + '</span></div>' +
         '</div>' +
 
             '<div class="pdf-section">' +
-            '<div class="pdf-section-title">Ubicacion</div>' +
+            '<div class="pdf-section-title">Ubicación</div>' +
             '<div class="pdf-row"><span class="pdf-label">Sector:</span><span class="pdf-value">' + escapeHtml(f.ubicacionGeo || f.sector || '') + '</span></div>' +
             '<div class="pdf-row"><span class="pdf-label">Calle:</span><span class="pdf-value">' + escapeHtml(f.calle || '') + '</span></div>' +
             '<div class="pdf-row"><span class="pdf-label">Fecha de Visita:</span><span class="pdf-value">' + fechaVisita + '</span></div>' +
@@ -1201,13 +1243,13 @@ function renderPdfContent(f) {
             '<div class="pdf-section-title">Reporte Concluyente</div>' +
             reporteChecks +
             '<div style="margin-top:10px;">' +
-                '<div class="pdf-label" style="margin-bottom:5px;">Conclusion:</div>' +
+                '<div class="pdf-label" style="margin-bottom:5px;">Conclusión:</div>' +
                 '<div class="pdf-text-block">' + escapeHtml(f.conclusion || '') + '</div>' +
             '</div>' +
         '</div>' +
 
         '<div class="pdf-section">' +
-            '<div class="pdf-section-title">Descripcion de la Emergencia</div>' +
+            '<div class="pdf-section-title">Descripción de la Emergencia</div>' +
             '<div class="pdf-text-block">' + escapeHtml(f.descripcion || '') + '</div>' +
         '</div>' +
 
@@ -1217,7 +1259,7 @@ function renderPdfContent(f) {
         '</div>' +
 
         '<div class="pdf-section">' +
-            '<div class="pdf-section-title">Condicion de Peligrosidad</div>' +
+            '<div class="pdf-section-title">Condición de Peligrosidad</div>' +
             (peligrosidadHtml || '<div class="pdf-text-block" style="color:#999;">Sin condiciones registradas</div>') +
         '</div>' +
 
@@ -1451,27 +1493,39 @@ btnExportPdf.addEventListener('click', () => {
         return;
     }
 
-    btnExportPdf.disabled = true;
-    btnExportPdf.textContent = 'Generando...';
+    loadFichas().then(fichas => {
+        const ficha = fichas.find(f => f.id === currentViewId);
+        const faltantes = ficha ? getFaltantesControl(ficha) : [];
 
-    generatePdfFilename().then(filename => {
-        const opt = {
-            margin: [10, 10, 10, 10],
-            filename: 'Informe_Emergencia_' + filename + '.pdf',
-            image: { type: 'jpeg', quality: 0.80 },
-            html2canvas: { scale: 1.5, useCORS: true, allowTaint: true, logging: false },
-            jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
-        };
+        if (faltantes.length > 0) {
+            showToast('No se puede exportar el PDF: complete el control documental antes de generar el informe de emergencia.\n\n' + faltantes.map(x => '· ' + x.label).join('\n') + '\n\nVaya a Control Documental para completar los datos.', 'error');
+            return;
+        }
 
-        return html2pdf().set(opt).from(element).save();
-    }).then(() => {
-        btnExportPdf.disabled = false;
-        btnExportPdf.textContent = 'Exportar PDF';
-    }).catch((err) => {
-        console.error('Error generando PDF:', err);
-        btnExportPdf.disabled = false;
-        btnExportPdf.textContent = 'Exportar PDF';
-        alert('Error al generar el PDF: ' + (err.message || 'Error desconocido'));
+        btnExportPdf.disabled = true;
+        btnExportPdf.textContent = 'Generando...';
+
+        generatePdfFilename().then(filename => {
+            const opt = {
+                margin: [10, 10, 10, 10],
+                filename: 'Informe_Emergencia_' + filename + '.pdf',
+                image: { type: 'jpeg', quality: 0.80 },
+                html2canvas: { scale: 1.5, useCORS: true, allowTaint: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+            };
+
+            return html2pdf().set(opt).from(element).save();
+        }).then(() => {
+            btnExportPdf.disabled = false;
+            btnExportPdf.textContent = 'Exportar PDF';
+            updateControlField(currentViewId, 'fechaGeneracion', Date.now());
+            renderFichasList();
+        }).catch((err) => {
+            console.error('Error generando PDF:', err);
+            btnExportPdf.disabled = false;
+            btnExportPdf.textContent = 'Exportar PDF';
+            alert('Error al generar el PDF: ' + (err.message || 'Error desconocido'));
+        });
     });
 });
 
@@ -1570,6 +1624,37 @@ function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+}
+
+function showToast(mensaje, tipo) {
+    const container = $('#toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = 'toast ' + (tipo || '');
+    toast.setAttribute('role', 'status');
+
+    const msg = document.createElement('span');
+    msg.style.flex = '1';
+    msg.style.whiteSpace = 'pre-line';
+    msg.textContent = mensaje;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'toast-close';
+    btn.setAttribute('aria-label', 'Cerrar notificación');
+    btn.textContent = '\u00d7';
+    btn.addEventListener('click', () => toast.remove());
+
+    toast.appendChild(msg);
+    toast.appendChild(btn);
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(12px)';
+        setTimeout(() => toast.remove(), 320);
+    }, 8000);
 }
 
 // ============ AUTH EVENT LISTENERS ============

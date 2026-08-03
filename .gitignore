@@ -11,3 +11,8 @@ Desktop.ini
 .vscode/
 .idea/
 *~
+
+# Skills y configuración de agentes
+.agents/
+.claude/
+skills-lock.json

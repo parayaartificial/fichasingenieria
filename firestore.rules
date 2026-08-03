@@ -1,0 +1,63 @@
+rules_version = '2';
+
+// ============================================================
+// REGLAS DE SEGURIDAD FIRESTORE - Informes de Emergencia
+// Ingeniería Municipal · Concepción
+//
+// ⚠️ ESTADO ACTUAL DE LA APP:
+//   La aplicación autentica usuarios con localStorage (login propio),
+//   NO usa Firebase Authentication. Por eso hoy la colección "fichas"
+//   queda abierta o bloqueada según el modo del proyecto.
+//
+// ✅ PASO PREVIO OBLIGATORIO ANTES DE DESPLEGAR ESTAS REGLAS:
+//   Migrar la autenticación de la app a Firebase Authentication
+//   (email/contraseña). Sin esa migración, estas reglas bloquean
+//   TODO el acceso a los datos.
+//
+// Despliegue con:  firebase deploy --only firestore:rules
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Fichas de emergencia ---------------------------------
+    match /fichas/{fichaId} {
+      allow read: if request.auth != null;
+
+      // Límites de tamaño para evitar agotamiento de recursos (DoS)
+      function valido() {
+        let d = request.resource.data;
+        return d.sector is string && d.sector.size() <= 200
+          && d.calle is string && d.calle.size() <= 300
+          && d.tipoEmergencia is string && d.tipoEmergencia.size() <= 200
+          && d.nombreAfectado is string && d.nombreAfectado.size() <= 200
+          && d.descripcion is string && d.descripcion.size() <= 20000
+          && d.conclusion is string && d.conclusion.size() <= 20000
+          && d.sectorial is string && d.sectorial.size() <= 100
+          && d.sectorialPersona is string && d.sectorialPersona.size() <= 150
+          && d.profesionalCargo is string && d.profesionalCargo.size() <= 150
+          && d.derivadoPor is string && d.derivadoPor.size() <= 150
+          && d.prioridad in ['', 'alta', 'media', 'baja']
+          && d.ubicacionGeo is string && d.ubicacionGeo.size() <= 2000
+          && d.registroNum is int && d.registroNum > 0 && d.registroNum < 100000
+          && d.codigoSeguimiento is string && d.codigoSeguimiento.size() <= 30;
+      }
+
+      // Al crear: un usuario autenticado puede crear fichas válidas
+      allow create: if request.auth != null && valido();
+
+      // Al actualizar: no se permiten cambios de tipo o tamaño
+      allow update: if request.auth != null
+        && valido()
+        && request.resource.data.keys().hasAll(['id', 'fechaCreacion']);
+
+      allow delete: if request.auth != null
+        && request.auth.uid == resource.data.uid;
+    }
+
+    // --- Negar el resto por defecto ----------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

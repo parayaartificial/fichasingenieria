@@ -3,35 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Informes de Emergencia - Ingenieria Municipal</title>
+    <meta name="description" content="Plataforma de Informes de Emergencia de la Dirección de Ingeniería Municipal de Concepción. Registro de emergencias, control documental y generación de informes.">
+    <meta name="theme-color" content="#0B3C5D">
+    <title>Informes de Emergencia — Ingeniería Municipal</title>
+    <link rel="icon" type="image/png" href="Logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=2">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=3">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
+<a class="skip-link" href="#mainPanel">Saltar al contenido</a>
+
 <!-- ============ LOGIN SCREEN ============ -->
 <div class="login-screen" id="loginScreen">
     <div class="login-card">
+        <div class="login-hazard" aria-hidden="true"></div>
         <div class="login-logo">
             <div class="brand-icon" style="width:56px;height:56px;font-size:1.2rem;">EM</div>
         </div>
         <h1>Informes de Emergencia</h1>
-        <p class="login-subtitle">Ingenieria Municipal - Concepcion</p>
+        <p class="login-subtitle">Ingeniería Municipal · Concepción</p>
         <form id="loginForm" autocomplete="off">
             <div class="form-group">
                 <label for="loginUser">Usuario</label>
                 <input type="text" id="loginUser" placeholder="Ingrese su usuario" required autofocus>
             </div>
             <div class="form-group">
-                <label for="loginPass">Contrasena</label>
-                <input type="password" id="loginPass" placeholder="Ingrese su contrasena" required>
+                <label for="loginPass">Contraseña</label>
+                <input type="password" id="loginPass" placeholder="Ingrese su contraseña" required autocomplete="current-password">
             </div>
-            <div id="loginError" class="login-error" style="display:none;">Usuario o contrasena incorrectos</div>
-            <button type="submit" class="btn btn-primary login-btn">Iniciar Sesion</button>
+            <div id="loginError" class="login-error" role="alert" style="display:none;">Usuario o contraseña incorrectos</div>
+            <button type="submit" class="btn btn-primary login-btn">Iniciar Sesión</button>
         </form>
     </div>
 </div>
@@ -39,12 +46,13 @@
 <!-- ============ MAIN APP ============ -->
 <div class="app-container" id="appContainer" style="display:none;">
     <header class="topbar" id="sidebar">
+        <div class="hazard-stripe" aria-hidden="true"></div>
         <div class="sidebar-header">
             <div class="sidebar-brand">
                 <div class="brand-icon">EM</div>
                 <div>
                     <h2>Informes de Emergencia</h2>
-                    <span class="brand-sub">Ingenieria Municipal</span>
+                    <span class="brand-sub">Ingeniería Municipal</span>
                 </div>
             </div>
             <button type="button" class="btn btn-primary btn-new" id="btnNewInforme" data-role="admin,creador">+ Nuevo Caso</button>
@@ -58,27 +66,27 @@
                     <div class="user-role" id="userRole">Admin</div>
                 </div>
             </div>
-            <button type="button" class="btn btn-ghost btn-sm" id="btnLogout" title="Cerrar sesion">
+            <button type="button" class="btn btn-ghost btn-sm" id="btnLogout" title="Cerrar sesión">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </button>
         </div>
 
-        <div class="sidebar-controls">
+        <nav class="sidebar-controls" aria-label="Navegación principal">
             <button type="button" class="btn btn-secondary" id="btnControlDoc" title="Control documental de informes">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 Control Documental
             </button>
             <div class="search-box">
-                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="searchInput" placeholder="Buscar por sector, calle, nombre...">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="searchInput" placeholder="Buscar por sector, calle, nombre..." aria-label="Buscar informes">
             </div>
-            <div class="filter-buttons">
+            <div class="filter-buttons" role="group" aria-label="Filtrar por semáforo">
                 <button type="button" class="filter-btn active" data-filter="all">Todas</button>
                 <button type="button" class="filter-btn" data-filter="verde"><span class="filter-dot verde"></span>Verde</button>
                 <button type="button" class="filter-btn" data-filter="amarillo"><span class="filter-dot amarillo"></span>Amarillo</button>
                 <button type="button" class="filter-btn" data-filter="rojo"><span class="filter-dot rojo"></span>Rojo</button>
             </div>
-        </div>
+        </nav>
 
         <div class="sidebar-stats" id="sidebarStats"></div>
 
@@ -100,16 +108,16 @@
     </header>
 
     <div class="app-body">
-        <aside class="informes-panel" id="informesPanel">
+        <aside class="informes-panel" id="informesPanel" aria-label="Lista de informes">
             <div class="informes-list" id="informesList">
-                <p class="empty-msg" id="emptyMsg">No hay informes registradas</p>
+                <p class="empty-msg" id="emptyMsg">No hay informes registrados</p>
             </div>
         </aside>
 
         <main class="main-panel" id="mainPanel">
         <div class="mobile-header" id="mobileHeader">
-            <button type="button" class="btn btn-ghost" id="btnToggleSidebar">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            <button type="button" class="btn btn-ghost" id="btnToggleSidebar" aria-label="Abrir menú">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
             <span class="mobile-title">Informes de Emergencia</span>
         </div>
@@ -131,13 +139,13 @@
                 <input type="hidden" id="informeId" value="">
 
                 <div class="semaforo-selector">
-                    <label>Tipo de Informe (Semaforo):</label>
+                    <label>Tipo de Informe (Semáforo):</label>
                     <div class="semaforo-buttons">
                         <button type="button" class="semaforo-btn" data-color="verde" title="Verde - Habitable">
                             <span class="semaforo-circle verde"></span>
                             <span>Verde</span>
                         </button>
-                        <button type="button" class="semaforo-btn" data-color="amarillo" title="Amarillo - Habitable con mitigacion">
+                        <button type="button" class="semaforo-btn" data-color="amarillo" title="Amarillo - Habitable con mitigación">
                             <span class="semaforo-circle amarillo"></span>
                             <span>Amarillo</span>
                         </button>
@@ -154,7 +162,7 @@
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label for="tipoEmergencia">Tipo de Emergencia</label>
-                            <input type="text" id="tipoEmergencia" placeholder="Ej: Deslizamiento de masa, Incendio, Inundacion...">
+                            <input type="text" id="tipoEmergencia" placeholder="Ej: Deslizamiento de masa, Incendio, Inundación...">
                         </div>
                         <div class="form-group">
                             <label for="registroNum">Registro N&ordm;</label>
@@ -164,7 +172,7 @@
                 </section>
 
                 <section class="form-section">
-                    <h3>Ubicacion</h3>
+                    <h3>Ubicación</h3>
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="sector">Sector <span class="required">*</span></label>
@@ -172,7 +180,7 @@
                         </div>
                         <div class="form-group">
                             <label for="calle">Calle</label>
-                            <input type="text" id="calle" placeholder="Direccion completa">
+                            <input type="text" id="calle" placeholder="Dirección completa">
                         </div>
                         <div class="form-group">
                             <label for="fechaVisita">Fecha de Visita</label>
@@ -190,7 +198,7 @@
                         </div>
                         <div class="form-group">
                             <label for="fono">Fono</label>
-                            <input type="text" id="fono" placeholder="Telefono de contacto">
+                            <input type="text" id="fono" placeholder="Teléfono de contacto">
                         </div>
                         <div class="form-group rojo-only" style="display:none;">
                             <label for="rut">RUT</label>
@@ -198,7 +206,7 @@
                         </div>
                         <div class="form-group rojo-only" style="display:none;">
                             <label for="visitaCon">Visita Realizada Con</label>
-                            <input type="text" id="visitaCon" placeholder="Nombre del acompanante">
+                            <input type="text" id="visitaCon" placeholder="Nombre del acompañante">
                         </div>
                     </div>
                 </section>
@@ -207,13 +215,13 @@
                     <h3>Reporte Concluyente</h3>
                     <div class="form-grid">
                         <div class="form-group full-width">
-                            <label>Opcion seleccionada:</label>
+                            <label>Opción seleccionada:</label>
                             <div class="radio-group">
                                 <label class="radio-label">
                                     <input type="radio" name="reporteConcluyente" value="HABITABLE"> HABITABLE
                                 </label>
                                 <label class="radio-label">
-                                    <input type="radio" name="reporteConcluyente" value="HABITABLE CON TRABAJOS DE MITIGACION"> HABITABLE CON MITIGACION
+                                    <input type="radio" name="reporteConcluyente" value="HABITABLE CON TRABAJOS DE MITIGACION"> HABITABLE CON MITIGACIÓN
                                 </label>
                                 <label class="radio-label">
                                     <input type="radio" name="reporteConcluyente" value="INHABITABLE. EVACUAR, NO RECUPERABLE"> INHABITABLE
@@ -221,7 +229,7 @@
                             </div>
                         </div>
                         <div class="form-group full-width">
-                            <label for="conclusion">Conclusion</label>
+                            <label for="conclusion">Conclusión</label>
                             <textarea id="conclusion" rows="3" placeholder="Resumen del reporte concluyente..."></textarea>
                         </div>
                     </div>
@@ -229,10 +237,11 @@
 
                 <section class="form-section">
                     <h3>Control Documental</h3>
+                    <p class="section-hint">Complete estos datos antes de generar el informe de emergencia. También puede completarlos en la vista de Control Documental.</p>
                     <input type="hidden" id="codigoSeguimiento" value="">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="sectorialSelect">Sectorial (Delegacion)</label>
+                            <label for="sectorialSelect">Sectorial (Delegación)</label>
                             <select id="sectorialSelect">
                                 <option value="">Seleccionar sector...</option>
                             </select>
@@ -266,11 +275,11 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="ubicacionGeo">Ubicacion Georeferenciada</label>
+                            <label for="ubicacionGeo">Ubicación Georeferenciada</label>
                             <input type="text" id="ubicacionGeo" placeholder="Link de Google Maps o sector (se auto-llena)">
                         </div>
                         <div class="form-group">
-                            <label for="fechaDerivacion">Fecha de Derivacion</label>
+                            <label for="fechaDerivacion">Fecha de Derivación</label>
                             <input type="date" id="fechaDerivacion">
                         </div>
                         <div class="form-group">
@@ -281,11 +290,11 @@
                 </section>
 
                 <section class="form-section">
-                    <h3>Descripcion de la Emergencia</h3>
+                    <h3>Descripción de la Emergencia</h3>
                     <div class="form-grid">
                         <div class="form-group full-width">
-                            <label for="descripcion">Ubicacion y Descripcion de la Emergencia</label>
-                            <textarea id="descripcion" rows="5" placeholder="Descripcion detallada de la emergencia..."></textarea>
+                            <label for="descripcion">Ubicación y Descripción de la Emergencia</label>
+                            <textarea id="descripcion" rows="5" placeholder="Descripción detallada de la emergencia..."></textarea>
                         </div>
                     </div>
                 </section>
@@ -297,32 +306,32 @@
                 </section>
 
                 <section class="form-section">
-                    <h3>Condicion de Peligrosidad</h3>
+                    <h3>Condición de Peligrosidad</h3>
                     <div id="peligrosidadList" class="dynamic-list"></div>
-                    <button type="button" class="btn btn-add" id="btnAddPeligro">+ Agregar condicion</button>
+                    <button type="button" class="btn btn-add" id="btnAddPeligro">+ Agregar condición</button>
                 </section>
 
                 <section class="form-section recomendaciones-section" id="recomendacionesSection">
                     <h3>Recomendaciones Post Emergencia</h3>
                     <div id="recomendacionesList" class="dynamic-list"></div>
-                    <button type="button" class="btn btn-add" id="btnAddRecomendacion">+ Agregar recomendacion</button>
+                    <button type="button" class="btn btn-add" id="btnAddRecomendacion">+ Agregar recomendación</button>
                 </section>
 
                 <section class="form-section">
-                    <h3>Evidencia Fotografica - Antes de la Visita</h3>
+                    <h3>Evidencia Fotográfica - Antes de la Visita</h3>
                     <div class="form-group full-width">
                         <input type="file" id="imageUploadAntes" accept="image/*" multiple style="display:none;">
-                        <button type="button" class="btn btn-add" id="btnUploadImageAntes">+ Seleccionar imagenes</button>
+                        <button type="button" class="btn btn-add" id="btnUploadImageAntes">+ Seleccionar imágenes</button>
                         <span class="storage-info" id="storageInfoAntes"></span>
                     </div>
                     <div id="imagePreviewListAntes" class="image-preview-grid"></div>
                 </section>
 
                 <section class="form-section">
-                    <h3>Evidencia Fotografica - Despues de la Visita</h3>
+                    <h3>Evidencia Fotográfica - Después de la Visita</h3>
                     <div class="form-group full-width">
                         <input type="file" id="imageUploadDespues" accept="image/*" multiple style="display:none;">
-                        <button type="button" class="btn btn-add" id="btnUploadImageDespues">+ Seleccionar imagenes</button>
+                        <button type="button" class="btn btn-add" id="btnUploadImageDespues">+ Seleccionar imágenes</button>
                         <span class="storage-info" id="storageInfoDespues"></span>
                     </div>
                     <div id="imagePreviewListDespues" class="image-preview-grid"></div>
@@ -330,7 +339,7 @@
 
                 <section class="form-section">
                     <h3>Firmas</h3>
-                    <p class="storage-info">Las firmas del informe se generan automaticamente desde el Control Documental: sectorial, profesional a cargo y derivado.</p>
+                    <p class="storage-info">Las firmas del informe se generan automáticamente desde el Control Documental: sectorial, profesional a cargo y derivado.</p>
                 </section>
             </form>
         </div>
@@ -338,6 +347,7 @@
         <div class="view-container" id="viewContainer" style="display:none;">
             <div class="form-header">
                 <h2>Vista Previa de Informe</h2>
+                <span class="vista-estado" id="vistaEstado" style="display:none;"></span>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" id="btnBackToList">Volver</button>
                     <button type="button" class="btn btn-primary" id="btnEditFromView" data-role="admin,creador,editor">Editar</button>
@@ -352,27 +362,29 @@
         <div class="control-container" id="controlContainer" style="display:none;">
             <div class="form-header">
                 <h2>Control Documental</h2>
-                <p class="control-subtitle">Seguimiento de informes creados</p>
+                <p class="control-subtitle">Complete el control antes de generar cada informe de emergencia</p>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" id="btnBackFromControl">Volver</button>
                 </div>
             </div>
             <div class="table-wrapper">
                 <table class="control-table">
+                    <caption class="visually-hidden">Control documental de informes de emergencia</caption>
                     <thead>
                         <tr>
                             <th>N&ordm;</th>
                             <th>Motivo</th>
                             <th>N&ordm; Seg.</th>
+                            <th>Estado</th>
                             <th>Sectorial</th>
                             <th>Profesional</th>
                             <th>Derivado</th>
-                            <th>F. Derivacion</th>
+                            <th>F. Derivación</th>
                             <th>F. Visita</th>
                             <th>F. Entrega</th>
                             <th>Prioridad</th>
                             <th>Horas</th>
-                            <th>Ubicacion</th>
+                            <th>Ubicación</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -386,10 +398,10 @@
 
 <!-- ============ USER MANAGEMENT MODAL ============ -->
 <div class="modal-overlay" id="userModal" style="display:none;">
-    <div class="modal-card">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="userModalTitle">
         <div class="modal-header">
-            <h3>Gestionar Usuarios</h3>
-            <button type="button" class="btn btn-ghost" id="btnCloseModal">&times;</button>
+            <h3 id="userModalTitle">Gestionar Usuarios</h3>
+            <button type="button" class="btn btn-ghost" id="btnCloseModal" aria-label="Cerrar">&times;</button>
         </div>
         <div class="modal-body">
             <div class="modal-form">
@@ -404,8 +416,8 @@
                         <input type="text" id="newUserLogin" placeholder="Nombre de usuario">
                     </div>
                     <div class="form-group">
-                        <label for="newUserPass">Contrasena</label>
-                        <input type="password" id="newUserPass" placeholder="Contrasena">
+                        <label for="newUserPass">Contraseña</label>
+                        <input type="password" id="newUserPass" placeholder="Contraseña">
                     </div>
                     <div class="form-group">
                         <label for="newUserRole">Perfil</label>
@@ -427,10 +439,10 @@
 
 <!-- ============ CREDENTIALS MODAL ============ -->
 <div class="modal-overlay" id="credsModal" style="display:none;">
-    <div class="modal-card modal-sm">
+    <div class="modal-card modal-sm" role="dialog" aria-modal="true" aria-labelledby="credsModalTitle">
         <div class="modal-header">
-            <h3>Credenciales de Acceso</h3>
-            <button type="button" class="btn btn-ghost" id="btnCloseCredsModal">&times;</button>
+            <h3 id="credsModalTitle">Credenciales de Acceso</h3>
+            <button type="button" class="btn btn-ghost" id="btnCloseCredsModal" aria-label="Cerrar">&times;</button>
         </div>
         <div class="modal-body">
             <div class="creds-table" id="credsTable"></div>
@@ -438,6 +450,9 @@
     </div>
 </div>
 
-<script src="app.js?v=2"></script>
+<div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+<script src="js/datos-maestros.js?v=3"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
