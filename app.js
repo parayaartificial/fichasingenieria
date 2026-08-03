@@ -56,6 +56,8 @@ const btnAddRecomendacion = $('#btnAddRecomendacion');
 const btnExportData = $('#btnExportData');
 const btnImportData = $('#btnImportData');
 const importFileInput = $('#importFileInput');
+const btnPapelera = $('#btnPapelera');
+const papeleraContainer = $('#papeleraContainer');
 const btnToggleSidebar = $('#btnToggleSidebar');
 
 const causasList = $('#causasList');
@@ -290,6 +292,7 @@ function generateId() {
 
 function getNextRegistroNum() {
     return loadFichas().then(fichas => {
+        fichas = fichasVivas(fichas);
         let maxNum = 0;
         fichas.forEach(f => {
             const num = parseInt(f.registroNum, 10);
@@ -302,6 +305,7 @@ function getNextRegistroNum() {
 function getNextCodigoSeguimiento() {
     const year = new Date().getFullYear();
     return loadFichas().then(fichas => {
+        fichas = fichasVivas(fichas);
         let maxNum = 0;
         fichas.forEach(f => {
             const codigo = f.codigoSeguimiento || '';
@@ -330,9 +334,12 @@ function renderFichasList() {
     fichasList.innerHTML = skeletonFichas();
     loadFichas().then(fichas => {
         fichasList.innerHTML = '';
+        fichas = fichasVivas(fichas);
 
         let filtered = fichas;
-        if (currentFilter !== 'all') {
+        if (currentFilter === 'hoy') {
+            filtered = filtered.filter(f => esDeHoy(f.fechaCreacion));
+        } else if (currentFilter !== 'all') {
             filtered = filtered.filter(f => f.semaforo === currentFilter);
         }
         if (currentSearch) {
@@ -347,6 +354,7 @@ function renderFichasList() {
         }
 
         renderSidebarStats(fichas);
+        actualizarPapeleraCount();
 
         if (filtered.length === 0) {
             fichasList.innerHTML = '<p class="empty-msg">' + (fichas.length === 0 ? 'No hay informes registrados' : 'No se encontraron resultados') + '</p>';
@@ -409,6 +417,7 @@ function renderDashboard() {
             '<div class="dash-kpi skeleton-card"><div class="skeleton-line skeleton-w50"></div><div class="skeleton-line skeleton-w70" style="height:26px;"></div></div>'.repeat(4) +
         '</div>';
     loadFichas().then(fichas => {
+        fichas = fichasVivas(fichas);
         const total = fichas.length;
         const counts = { verde: 0, amarillo: 0, rojo: 0 };
         fichas.forEach(f => { if (counts[f.semaforo] !== undefined) counts[f.semaforo]++; });
@@ -662,6 +671,68 @@ function loadFichasSync() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
 }
 
+// ============ PAPELERA ============
+function fichasVivas(fichas) { return fichas.filter(f => !f.fechaEliminacion); }
+function fichasPapelera(fichas) { return fichas.filter(f => f.fechaEliminacion); }
+
+function esDeHoy(ts) {
+    if (!ts) return false;
+    const d = new Date(ts);
+    const hoy = new Date();
+    return d.getFullYear() === hoy.getFullYear() && d.getMonth() === hoy.getMonth() && d.getDate() === hoy.getDate();
+}
+
+function actualizarPapeleraCount() {
+    const n = fichasPapelera(loadFichasSync()).length;
+    const badge = $('#papeleraCount');
+    if (!badge) return;
+    badge.hidden = n === 0;
+    badge.textContent = n;
+}
+
+function mostrarPapelera() {
+    emptyState.style.display = 'none';
+    formContainer.style.display = 'none';
+    viewContainer.style.display = 'none';
+    controlContainer.style.display = 'none';
+    papeleraContainer.style.display = '';
+    papeleraContainer.style.animation = 'fadeSlideIn 0.3s ease';
+    currentViewId = null;
+
+    loadFichas().then(fichas => {
+        const papelera = fichasPapelera(fichas).sort((a, b) => (b.fechaEliminacion || 0) - (a.fechaEliminacion || 0));
+        const list = $('#papeleraList');
+        list.innerHTML = '';
+        if (papelera.length === 0) {
+            list.innerHTML = '<p class="empty-msg">La papelera está vacía.</p>';
+            return;
+        }
+        papelera.forEach(f => {
+            const creado = f.fechaCreacion ? new Date(f.fechaCreacion).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+            const eliminado = f.fechaEliminacion ? new Date(f.fechaEliminacion).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+            const item = document.createElement('div');
+            item.className = 'papelera-item';
+            item.innerHTML =
+                '<div class="papelera-item-info">' +
+                    '<div class="papelera-item-title">' +
+                        '<span class="ficha-card-dot ' + (f.semaforo || '') + '"></span>' +
+                        '<strong>N&ordm; ' + (f.registroNum || '-') + '</strong> &middot; ' + escapeHtml(f.sector || 'Sin sector') +
+                        (f.calle ? ' &middot; ' + escapeHtml(f.calle) : '') +
+                    '</div>' +
+                    '<div class="papelera-item-meta">' +
+                        'Creado: ' + creado + ' &middot; Eliminado: ' + eliminado +
+                        (f.tipoEmergencia ? ' &middot; ' + escapeHtml(f.tipoEmergencia) : '') +
+                    '</div>' +
+                '</div>' +
+                '<div class="papelera-item-actions">' +
+                    '<button type="button" class="btn btn-secondary btn-sm" data-restore="' + f.id + '">Restaurar</button>' +
+                    '<button type="button" class="btn btn-danger btn-sm" data-purge="' + f.id + '">Eliminar definitivamente</button>' +
+                '</div>';
+            list.appendChild(item);
+        });
+    });
+}
+
 // ============ SEMAFORO ============
 function selectSemaforo(color) {
     semaforoColor.value = color;
@@ -797,7 +868,7 @@ function updateStorageInfo(type) {
 // ============ VIEW FICHA ============
 function viewFicha(id) {
     loadFichas().then(fichas => {
-        const ficha = fichas.find(f => f.id === id);
+        const ficha = fichas.find(f => f.id === id && !f.fechaEliminacion);
         if (!ficha) return;
 
         currentViewId = id;
@@ -893,6 +964,7 @@ function showControlView() {
     controlContainer.style.animation = 'fadeSlideIn 0.3s ease';
 
     loadFichas().then(fichas => {
+        fichas = fichasVivas(fichas);
         fichas.sort((a, b) => (b.fechaCreacion || 0) - (a.fechaCreacion || 0));
 
         let backfilled = false;
@@ -1362,19 +1434,60 @@ btnEditFromView.addEventListener('click', () => {
     });
 });
 
-// ============ DELETE ============
+// ============ DELETE (borrado suave -> papelera) ============
 btnDeleteFromView.addEventListener('click', () => {
     if (!currentViewId) return;
-    if (!confirm('Esta seguro que desea eliminar esta ficha?')) return;
+    if (!confirm('¿Mover este informe a la Papelera? Puede restaurarlo después.')) return;
 
     loadFichas().then(fichas => {
-        const filtered = fichas.filter(f => f.id !== currentViewId);
-        saveFichas(filtered);
-        currentViewId = null;
-        viewContainer.style.display = 'none';
-        emptyState.style.display = '';
-        renderFichasList();
-        renderDashboard();
+        const ficha = fichas.find(f => f.id === currentViewId);
+        if (!ficha) return;
+        ficha.fechaEliminacion = Date.now();
+        saveFichas(fichas).then(() => {
+            currentViewId = null;
+            viewContainer.style.display = 'none';
+            emptyState.style.display = '';
+            renderFichasList();
+            renderDashboard();
+            actualizarPapeleraCount();
+            showToast('Informe movido a la Papelera', '');
+        });
+    });
+});
+
+// ============ PAPELERA ============
+btnPapelera.addEventListener('click', () => {
+    mostrarPapelera();
+    closeSidebarMobile();
+});
+
+btnBackFromPapelera.addEventListener('click', () => {
+    papeleraContainer.style.display = 'none';
+    emptyState.style.display = '';
+    currentViewId = null;
+    renderFichasList();
+    renderDashboard();
+});
+
+$('#papeleraList').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-restore], [data-purge]');
+    if (!btn) return;
+    const id = btn.dataset.restore || btn.dataset.purge;
+    loadFichas().then(fichas => {
+        const ficha = fichas.find(f => f.id === id);
+        if (!ficha) return;
+        if (btn.dataset.restore) {
+            delete ficha.fechaEliminacion;
+            showToast('Informe N° ' + (ficha.registroNum || '-') + ' restaurado', '');
+        } else {
+            if (!confirm('¿Eliminar definitivamente el informe N° ' + (ficha.registroNum || '-') + '? Esta acción no se puede deshacer.')) return;
+            fichas = fichas.filter(f => f.id !== id);
+            showToast('Informe eliminado definitivamente', '');
+        }
+        saveFichas(fichas).then(() => {
+            actualizarPapeleraCount();
+            mostrarPapelera();
+        });
     });
 });
 
@@ -1603,7 +1716,7 @@ function generatePdfFilename() {
     const d = String(now.getDate()).padStart(2, '0');
     const today = y + '' + m + '' + d;
     return loadFichas().then(fichas => {
-        const fichasHoy = fichas.filter(f => {
+        const fichasHoy = fichasVivas(fichas).filter(f => {
             if (!f.fechaCreacion) return false;
             const fd = new Date(f.fechaCreacion);
             return fd.getFullYear() === y && fd.getMonth() === now.getMonth() && fd.getDate() === now.getDate();
@@ -1696,6 +1809,7 @@ importFileInput.addEventListener('change', (e) => {
             saveFichas(data);
             renderFichasList();
             renderDashboard();
+            actualizarPapeleraCount();
             alert('Datos importados correctamente. ' + data.length + ' fichas cargadas.');
         } catch (err) {
             alert('Error al leer el archivo: ' + err.message);
@@ -2167,6 +2281,7 @@ montarAyudas();
 initDatalists();
 inicializarNavSecciones();
 initValidacionVivo();
+actualizarPapeleraCount();
 if (checkSession()) {
     showApp();
 } else {

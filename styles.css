@@ -858,6 +858,60 @@ h1, h2, h3, h4 {
     margin: 0;
 }
 
+/* ============ PAPELERA ============ */
+.papelera-container {
+    max-width: 1060px;
+    margin: 0 auto;
+}
+
+.papelera-list { display: grid; gap: 12px; }
+
+.papelera-item {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--red);
+    border-radius: var(--radius-lg);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow-sm);
+}
+
+.papelera-item-title {
+    font-size: 0.9rem;
+    color: var(--gray-800);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.papelera-item-meta {
+    font-size: 0.74rem;
+    color: var(--gray-500);
+    margin-top: 4px;
+}
+
+.papelera-item-actions { display: flex; gap: 8px; }
+
+.papelera-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--red);
+    color: #fff;
+    font-size: 0.66rem;
+    font-weight: 800;
+    font-family: var(--font-mono);
+}
+
 .form-header {
     display: flex;
     align-items: center;

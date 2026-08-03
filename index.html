@@ -82,8 +82,9 @@
                 <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>
                 <input type="text" id="searchInput" placeholder="Buscar por sector, calle, nombre..." aria-label="Buscar informes">
             </div>
-            <div class="filter-buttons" role="group" aria-label="Filtrar por semáforo">
+            <div class="filter-buttons" role="group" aria-label="Filtrar informes">
                 <button type="button" class="filter-btn active" data-filter="all">Todas</button>
+                <button type="button" class="filter-btn" data-filter="hoy">Hoy</button>
                 <button type="button" class="filter-btn" data-filter="verde"><span class="filter-dot verde"></span>Verde</button>
                 <button type="button" class="filter-btn" data-filter="amarillo"><span class="filter-dot amarillo"></span>Amarillo</button>
                 <button type="button" class="filter-btn" data-filter="rojo"><span class="filter-dot rojo"></span>Rojo</button>
@@ -101,6 +102,11 @@
                 <button type="button" class="btn btn-ghost btn-sm" id="btnImportData" title="Importar datos" data-role="admin">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M4 15.5v3a2.5 2.5 0 0 0 2.5 2.5h11a2.5 2.5 0 0 0 2.5-2.5v-3"/><path d="M12 14.5v-10"/><path d="M8.5 9 12 12.5 15.5 9"/></svg>
                     Importar
+                </button>
+                <button type="button" class="btn btn-ghost btn-sm" id="btnPapelera" title="Informes eliminados">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M3.5 6.5h17"/><path d="M8 6.5V4.5a1.5 1.5 0 0 1 1.5-1.5h5A1.5 1.5 0 0 1 16 4.5v2"/><path d="M5.5 6.5 6.8 19a2 2 0 0 0 2 1.9h6.4a2 2 0 0 0 2-1.9l1.3-12.5"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                    Papelera
+                    <span class="papelera-count" id="papeleraCount" hidden>0</span>
                 </button>
                 <button type="button" class="btn btn-ghost btn-sm" id="btnManageUsers" title="Gestionar usuarios" data-role="admin">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><path d="M16 5a3.5 3.5 0 0 1 0 6"/><path d="M17.5 13.7c2.2.8 3.8 3 3.8 5.6"/></svg>
@@ -127,6 +133,17 @@
 
         <div class="empty-state" id="emptyState">
             <div class="dashboard-container" id="dashboardContainer"></div>
+        </div>
+
+        <div class="papelera-container" id="papeleraContainer" style="display:none;">
+            <div class="form-header">
+                <h2>Papelera</h2>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btnBackFromPapelera">Volver</button>
+                </div>
+            </div>
+            <p class="control-subtitle">Informes eliminados. Puede restaurarlos o eliminarlos definitivamente.</p>
+            <div class="papelera-list" id="papeleraList"></div>
         </div>
 
         <div class="form-container" id="formContainer" style="display:none;">
