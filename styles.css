@@ -848,9 +848,14 @@ h1, h2, h3, h4 {
 .dash-steps strong { color: var(--navy); }
 
 /* ============ FORMULARIOS ============ */
-.form-container, .view-container, .control-container {
+.form-container, .view-container {
     max-width: 1060px;
     margin: 0 auto;
+}
+
+.control-container {
+    max-width: none;
+    margin: 0;
 }
 
 .form-header {
@@ -1311,7 +1316,7 @@ h1, h2, h3, h4 {
     border-spacing: 0;
     font-size: 0.76rem;
     font-variant-numeric: tabular-nums;
-    min-width: 1300px;
+    min-width: 1160px;
 }
 
 .control-table thead th {
@@ -1325,14 +1330,14 @@ h1, h2, h3, h4 {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.07em;
-    padding: 11px 10px;
+    padding: 11px 8px;
     text-align: left;
     white-space: nowrap;
     border-bottom: 3px solid var(--amber);
 }
 
 .control-table tbody td {
-    padding: 8px 10px;
+    padding: 7px 8px;
     border-bottom: 1px solid var(--gray-100);
     vertical-align: middle;
     background: var(--surface);
