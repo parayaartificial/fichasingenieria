@@ -1,514 +1,475 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Plataforma de Informes de Emergencia de la Dirección de Ingeniería Municipal de Concepción. Registro de emergencias, control documental y generación de informes.">
-    <meta name="theme-color" content="#0B3C5D">
-    <title>Informes de Emergencia — Ingeniería Municipal</title>
-    <link rel="icon" type="image/png" href="Logo.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=8">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Informes de Emergencia - Ingeniería Municipal</title>
+<meta name="description" content="Sistema de fichas de emergencia para la Dirección de Ingeniería Municipal de Concepción">
+<link rel="icon" href="Logo.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=1">
 </head>
 <body>
 
-<a class="skip-link" href="#mainPanel">Saltar al contenido</a>
+<a class="skip-link" href="#mainContent">Saltar al contenido</a>
 
-<!-- ============ LOGIN SCREEN ============ -->
-<div class="login-screen" id="loginScreen">
+<!-- ============ LOGIN ============ -->
+<div id="loginScreen" class="login-screen" hidden>
     <div class="login-card">
-        <div class="login-hazard" aria-hidden="true"></div>
-        <div class="login-logo">
-            <div class="brand-icon" style="width:56px;height:56px;font-size:1.2rem;">EM</div>
+        <div class="login-brand">
+            <img src="Logo.png" alt="Logo municipal" class="login-logo">
+            <h1>Informes de Emergencia</h1>
+            <p>Dirección de Ingeniería Municipal de Concepción</p>
         </div>
-        <h1>Informes de Emergencia</h1>
-        <p class="login-subtitle">Ingeniería Municipal · Concepción</p>
-        <div class="login-semaforo" aria-hidden="true"><span class="verde"></span><span class="amarillo"></span><span class="rojo"></span></div>
-        <form id="loginForm" autocomplete="off">
-            <div class="form-group">
-                <label for="loginUser">Usuario</label>
-                <input type="text" id="loginUser" placeholder="Ingrese su usuario" required autofocus>
-            </div>
-            <div class="form-group">
-                <label for="loginPass">Contraseña</label>
-                <input type="password" id="loginPass" placeholder="Ingrese su contraseña" required autocomplete="current-password">
-            </div>
-            <div id="loginError" class="login-error" role="alert" style="display:none;">Usuario o contraseña incorrectos</div>
-            <button type="submit" class="btn btn-primary login-btn">Iniciar Sesión</button>
+        <form id="loginForm" novalidate>
+            <label for="loginUser">Usuario</label>
+            <input type="text" id="loginUser" autocomplete="username" required>
+            <label for="loginPass">Contraseña</label>
+            <input type="password" id="loginPass" autocomplete="current-password" required>
+            <p id="loginError" class="form-error" hidden></p>
+            <button type="submit" class="btn btn-primary btn-block">Entrar</button>
         </form>
     </div>
 </div>
 
-<!-- ============ MAIN APP ============ -->
-<div class="app-container" id="appContainer" style="display:none;">
-    <header class="topbar" id="sidebar">
-        <div class="hazard-stripe" aria-hidden="true"></div>
-        <div class="topbar-main">
-            <div class="sidebar-header">
-                <div class="sidebar-brand">
-                    <div class="brand-icon">EM</div>
-                    <div>
-                        <h2>Informes de Emergencia</h2>
-                        <span class="brand-sub">Ingeniería Municipal</span>
+<!-- ============ APP ============ -->
+<div id="app" hidden>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <button id="btnMenu" class="icon-btn" aria-label="Abrir menú" hidden>&#9776;</button>
+            <a href="#" id="brandHome" class="brand" aria-label="Ir al inicio">
+                <img src="Logo.png" alt="" class="brand-logo">
+                <span class="brand-text">Ingeniería <em>Municipal</em></span>
+            </a>
+            <nav class="main-nav" aria-label="Navegación principal">
+                <button class="nav-btn is-active" data-view="dashboard">Inicio</button>
+                <button class="nav-btn" data-view="lista">Informes</button>
+                <button class="nav-btn" data-view="control">Control</button>
+                <button class="nav-btn" data-view="papelera">
+                    Papelera <span id="papeleraCount" class="badge" hidden>0</span>
+                </button>
+            </nav>
+            <div class="topbar-actions">
+                <button id="btnNewInforme" class="btn btn-primary btn-sm" data-role="admin,creador">+ Nuevo informe</button>
+                <div class="user-menu">
+                    <span id="userAvatar" class="avatar" aria-hidden="true">?</span>
+                    <div class="user-info">
+                        <span id="userName" class="user-name"></span>
+                        <span id="userRole" class="user-role"></span>
+                    </div>
+                    <button id="btnUserActions" class="icon-btn" aria-label="Opciones de usuario" title="Opciones">&#8942;</button>
+                    <div id="userActionsMenu" class="menu-dropdown" hidden>
+                        <button data-action="creds" data-role="admin" hidden>Ver credenciales</button>
+                        <button data-action="users" data-role="admin" hidden>Administrar usuarios</button>
+                        <button data-action="export" data-role="admin" hidden>Exportar datos</button>
+                        <button data-action="import" data-role="admin" hidden>Importar datos</button>
+                        <hr>
+                        <button data-action="logout">Cerrar sesión</button>
                     </div>
                 </div>
-                <button type="button" class="btn btn-primary btn-new" id="btnNewInforme" data-role="admin,creador">+ Nuevo Caso</button>
-            </div>
-            <div class="sidebar-user" id="sidebarUser">
-                <div class="user-info">
-                    <div class="user-avatar" id="userAvatar">A</div>
-                    <div>
-                        <div class="user-name" id="userName">Usuario</div>
-                        <div class="user-role" id="userRole">Admin</div>
-                    </div>
-                </div>
-                <button type="button" class="btn btn-ghost btn-sm" id="btnLogout" title="Cerrar sesión">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><rect x="3" y="5" width="15" height="14" rx="2.5"/><path d="M13 9.5 16.5 12 13 14.5"/><path d="M16.5 12H9"/></svg>
-                </button>
-            </div>
-        </div>
-
-        <div class="topbar-secondary">
-            <button type="button" class="btn btn-secondary" id="btnControlDoc" title="Control documental de informes">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><rect x="4.5" y="4" width="12" height="17" rx="2.5"/><path d="M8.5 4V2.5h6V4"/><path d="M8.5 10h6"/><path d="M8.5 14h6"/><circle cx="18.5" cy="8" r="1.1" fill="var(--green)" stroke="none"/><circle cx="18.5" cy="12" r="1.1" fill="var(--amber)" stroke="none"/><circle cx="18.5" cy="16" r="1.1" fill="var(--red)" stroke="none"/></svg>
-                Control Documental
-            </button>
-            <div class="search-box">
-                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>
-                <input type="text" id="searchInput" placeholder="Buscar por sector, calle, nombre..." aria-label="Buscar informes">
-            </div>
-            <div class="filter-buttons" role="group" aria-label="Filtrar informes">
-                <button type="button" class="filter-btn active" data-filter="all">Todas</button>
-                <button type="button" class="filter-btn" data-filter="hoy">Hoy</button>
-                <button type="button" class="filter-btn" data-filter="verde"><span class="filter-dot verde"></span>Verde</button>
-                <button type="button" class="filter-btn" data-filter="amarillo"><span class="filter-dot amarillo"></span>Amarillo</button>
-                <button type="button" class="filter-btn" data-filter="rojo"><span class="filter-dot rojo"></span>Rojo</button>
-            </div>
-            <div class="sidebar-stats" id="sidebarStats"></div>
-        </div>
-
-        <div class="topbar-tertiary">
-            <div class="sidebar-footer">
-                <input type="file" id="importFileInput" accept=".json" style="display:none;">
-                <button type="button" class="btn btn-ghost btn-sm" id="btnExportData" title="Exportar datos" data-role="admin">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M4 15.5v3a2.5 2.5 0 0 0 2.5 2.5h11a2.5 2.5 0 0 0 2.5-2.5v-3"/><path d="M12 4.5v10"/><path d="M8.5 9 12 5.5 15.5 9"/></svg>
-                    Exportar
-                </button>
-                <button type="button" class="btn btn-ghost btn-sm" id="btnImportData" title="Importar datos" data-role="admin">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M4 15.5v3a2.5 2.5 0 0 0 2.5 2.5h11a2.5 2.5 0 0 0 2.5-2.5v-3"/><path d="M12 14.5v-10"/><path d="M8.5 9 12 12.5 15.5 9"/></svg>
-                    Importar
-                </button>
-                <button type="button" class="btn btn-ghost btn-sm" id="btnPapelera" title="Informes eliminados">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M3.5 6.5h17"/><path d="M8 6.5V4.5a1.5 1.5 0 0 1 1.5-1.5h5A1.5 1.5 0 0 1 16 4.5v2"/><path d="M5.5 6.5 6.8 19a2 2 0 0 0 2 1.9h6.4a2 2 0 0 0 2-1.9l1.3-12.5"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-                    Papelera
-                    <span class="papelera-count" id="papeleraCount" hidden>0</span>
-                </button>
-                <button type="button" class="btn btn-ghost btn-sm" id="btnManageUsers" title="Gestionar usuarios" data-role="admin">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><path d="M16 5a3.5 3.5 0 0 1 0 6"/><path d="M17.5 13.7c2.2.8 3.8 3 3.8 5.6"/></svg>
-                    Usuarios
-                </button>
             </div>
         </div>
     </header>
 
-    <div class="app-body">
-        <aside class="informes-panel" id="informesPanel" aria-label="Lista de informes">
-            <div class="informes-list" id="informesList">
-                <p class="empty-msg" id="emptyMsg">No hay informes registrados</p>
+    <input type="file" id="importFileInput" accept=".json" hidden>
+
+    <main id="mainContent" class="main">
+        <!-- ============ DASHBOARD ============ -->
+        <section id="view-dashboard" class="view" hidden>
+            <div class="view-header">
+                <h2>Panel general</h2>
+                <button id="btnRefreshDashboard" class="btn btn-ghost btn-sm">Actualizar</button>
             </div>
-        </aside>
-
-        <main class="main-panel" id="mainPanel">
-        <div class="mobile-header" id="mobileHeader">
-            <button type="button" class="btn btn-ghost" id="btnToggleSidebar" aria-label="Abrir menú">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" width="24" height="24" aria-hidden="true"><line x1="4" y1="6.5" x2="20" y2="6.5"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17.5" x2="14" y2="17.5"/></svg>
-            </button>
-            <span class="mobile-title">Informes de Emergencia</span>
-        </div>
-
-        <div class="empty-state" id="emptyState">
-            <div class="dashboard-container" id="dashboardContainer"></div>
-        </div>
-
-        <div class="papelera-container" id="papeleraContainer" style="display:none;">
-            <div class="form-header">
-                <h2>Papelera</h2>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" id="btnBackFromPapelera">Volver</button>
-                </div>
+            <div id="dashboardSkeleton" class="skeleton-grid" hidden>
+                <div class="sk sk-card"></div><div class="sk sk-card"></div>
+                <div class="sk sk-card"></div><div class="sk sk-card"></div>
             </div>
-            <p class="control-subtitle">Informes eliminados. Puede restaurarlos o eliminarlos definitivamente.</p>
-            <div class="papelera-list" id="papeleraList"></div>
-        </div>
+            <div id="dashboardContainer"></div>
+        </section>
 
-        <div class="form-container" id="formContainer" style="display:none;">
-            <div class="form-header">
-                <h2 id="formTitle">Nuevo Caso</h2>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" id="btnCancel">Cancelar</button>
-                    <button type="button" class="btn btn-success" id="btnSave" data-role="admin,creador,editor">Guardar Informe</button>
-                </div>
-            </div>
-
-            <details class="form-guide" id="formGuide">
-                <summary>¿Cómo llenar este informe?</summary>
-                <div class="form-guide-body">
-                    <p>Complete el formulario por secciones. Solo <strong>dos campos son obligatorios</strong> para guardar (Semáforo y Sector); el resto puede completarlo ahora o después.</p>
-                    <ol>
-                        <li><strong>Semáforo</strong>: indique el estado de la vivienda. <em>Verde</em> = habitable · <em>Amarillo</em> = habitable con mitigación · <em>Rojo</em> = inhabitable.</li>
-                        <li><strong>Datos de la emergencia</strong>: qué pasó, dónde, a quién afecta y el resultado de la visita.</li>
-                        <li><strong>Control Documental</strong>: delegación, profesional, prioridad y fechas. Son <strong>9 campos obligatorios para generar el informe</strong>; mientras falten, el informe queda como "Pendiente".</li>
-                        <li>Finalmente, desde la <strong>Vista Previa</strong> podrá exportar el informe en PDF con las firmas de la delegación y del profesional.</li>
-                    </ol>
-                    <p class="form-guide-tip">Consejo: si no sabe qué escribir en un campo, lea el texto de ayuda gris debajo de cada uno. En todos se indica un ejemplo.</p>
-                </div>
-            </details>
-
-            <div class="form-progress" id="formProgress" aria-hidden="true">
-                <div class="form-progress-bar" id="formProgressBar"></div>
-            </div>
-            <nav class="form-sections-nav" id="formSectionsNav" aria-label="Secciones del formulario"></nav>
-
-            <form id="informeForm" autocomplete="off">
-                <input type="hidden" id="informeId" value="">
-
-                <datalist id="sugTipoEmergencia"></datalist>
-                <datalist id="sugSectores"></datalist>
-
-                <div class="semaforo-selector">
-                    <label>Tipo de Informe (Semáforo):</label>
-                    <div class="semaforo-buttons">
-                        <button type="button" class="semaforo-btn" data-color="verde" title="Verde - Habitable">
-                            <span class="semaforo-circle verde"></span>
-                            <span>Verde</span>
-                        </button>
-                        <button type="button" class="semaforo-btn" data-color="amarillo" title="Amarillo - Habitable con mitigación">
-                            <span class="semaforo-circle amarillo"></span>
-                            <span>Amarillo</span>
-                        </button>
-                        <button type="button" class="semaforo-btn" data-color="rojo" title="Rojo - Inhabitable">
-                            <span class="semaforo-circle rojo"></span>
-                            <span>Rojo</span>
-                        </button>
+        <!-- ============ LISTA ============ -->
+        <section id="view-lista" class="view" hidden>
+            <div class="view-header">
+                <h2>Informes</h2>
+                <div class="toolbar">
+                    <input type="search" id="searchInput" placeholder="Buscar por sector, calle, persona..." aria-label="Buscar informes">
+                    <div class="filter-group" role="group" aria-label="Filtrar por semáforo">
+                        <button class="filter-btn is-active" data-filter="all">Todos</button>
+                        <button class="filter-btn" data-filter="hoy">Creados hoy</button>
+                        <button class="filter-btn" data-filter="verde">Verde</button>
+                        <button class="filter-btn" data-filter="amarillo">Amarillo</button>
+                        <button class="filter-btn" data-filter="rojo">Rojo</button>
                     </div>
-                    <input type="hidden" id="semaforoColor" value="">
+                </div>
+            </div>
+            <div id="informesList" class="ficha-grid"></div>
+            <div id="emptyMsg" class="empty-state" hidden>
+                <div class="empty-disc">&#128196;</div>
+                <h3>No hay informes aquí todavía</h3>
+                <p>Presiona <strong>+ Nuevo informe</strong> para registrar el primer caso.</p>
+            </div>
+        </section>
+
+        <!-- ============ VISTA FICHA ============ -->
+        <section id="view-ficha" class="view" hidden>
+            <div class="view-header">
+                <button id="btnBackToList" class="btn btn-ghost btn-sm">&larr; Volver</button>
+                <div class="ficha-actions">
+                    <button id="btnEditFromView" class="btn btn-primary btn-sm" data-role="admin,creador,editor">Editar</button>
+                    <button id="btnDuplicateFromView" class="btn btn-ghost btn-sm" data-role="admin,creador">Duplicar</button>
+                    <button id="btnExportPdf" class="btn btn-accent btn-sm">Exportar PDF</button>
+                    <button id="btnDeleteFromView" class="btn btn-danger btn-sm" data-role="admin">Borrar</button>
+                </div>
+            </div>
+            <div id="vistaEstado" class="vista-status"></div>
+            <div id="pdfContent" class="pdf-content"></div>
+        </section>
+
+        <!-- ============ FORMULARIO ============ -->
+        <section id="view-form" class="view" hidden>
+            <div class="view-header">
+                <button id="btnCancel" class="btn btn-ghost btn-sm">&larr; Cancelar</button>
+                <h2 id="formTitle">Nuevo informe</h2>
+                <button id="btnSave" class="btn btn-primary" data-role="admin,creador,editor">Guardar informe</button>
+            </div>
+            <div id="formProgressWrap">
+                <div id="formProgressBar" class="progress-bar"></div>
+                <div id="formProgressLabel" class="progress-label">Paso 1 de 8</div>
+            </div>
+            <div id="formSectionsNav" class="stepper" role="tablist" aria-label="Pasos del formulario"></div>
+
+            <form id="informeForm" novalidate>
+                <input type="hidden" id="informeId">
+                <div id="formErrorBox" class="form-error" hidden></div>
+
+                <!-- PASO 1: EMERGENCIA -->
+                <div class="step" data-step="1">
+                    <div class="card">
+                        <h3>¿Qué pasó?</h3>
+                        <div class="field">
+                            <label for="tipoEmergencia">Tipo de emergencia <span class="req">*</span></label>
+                            <input type="text" id="tipoEmergencia" list="sugTipoEmergencia" placeholder="Ej: Caída de árbol, Deslizamiento de tierra">
+                            <datalist id="sugTipoEmergencia"></datalist>
+                        </div>
+                        <div class="field">
+                            <label for="registroNum">N° de registro</label>
+                            <input type="text" id="registroNum" readonly class="mono">
+                        </div>
+                        <fieldset class="field">
+                            <legend>Nivel de riesgo <span class="req">*</span></legend>
+                            <div class="semaforo-row" role="radiogroup" aria-label="Nivel de riesgo">
+                                <button type="button" class="semaforo-btn" data-color="verde">
+                                    <span class="disc disc-verde"></span> Verde
+                                </button>
+                                <button type="button" class="semaforo-btn" data-color="amarillo">
+                                    <span class="disc disc-amarillo"></span> Amarillo
+                                </button>
+                                <button type="button" class="semaforo-btn" data-color="rojo">
+                                    <span class="disc disc-rojo"></span> Rojo
+                                </button>
+                            </div>
+                            <input type="hidden" id="semaforoColor">
+                            <p id="semaforoAyuda" class="field-help"></p>
+                        </fieldset>
+                    </div>
                 </div>
 
-                <section class="form-section">
-                    <h3>Datos de la Emergencia</h3>
-                    <div class="form-grid">
-                        <div class="form-group full-width">
-                            <label for="tipoEmergencia">Tipo de Emergencia</label>
-                            <input type="text" id="tipoEmergencia" placeholder="Ej: Deslizamiento de masa, Incendio, Inundación...">
+                <!-- PASO 2: UBICACIÓN -->
+                <div class="step" data-step="2" hidden>
+                    <div class="card">
+                        <h3>¿Dónde ocurrió?</h3>
+                        <div class="field">
+                            <label for="sector">Sector / Delegación <span class="req">*</span></label>
+                            <select id="sector" class="select-wide"><option value="">Selecciona el sector...</option></select>
                         </div>
-                        <div class="form-group">
-                            <label for="registroNum">Registro N&ordm;</label>
-                            <input type="number" id="registroNum" min="1" readonly>
+                        <div class="field">
+                            <label for="calle">Calle o dirección</label>
+                            <input type="text" id="calle" placeholder="Ej: Michimalonco 1540">
                         </div>
-                    </div>
-                </section>
-
-                <section class="form-section">
-                    <h3>Ubicación</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="sector">Sector <span class="required">*</span></label>
-                            <input type="text" id="sector" placeholder="Nombre del sector" required>
+                        <div class="field">
+                            <label for="ubicacionGeo">Ubicación (enlace de mapas u otra referencia)</label>
+                            <input type="text" id="ubicacionGeo" placeholder="Ej: https://maps.app.goo.gl/... o nombre del sector">
                         </div>
-                        <div class="form-group">
-                            <label for="calle">Calle</label>
-                            <input type="text" id="calle" placeholder="Dirección completa">
-                        </div>
-                        <div class="form-group">
-                            <label for="fechaVisita">Fecha de Visita</label>
+                        <div class="field">
+                            <label for="fechaVisita">Fecha de la visita</label>
                             <input type="date" id="fechaVisita">
                         </div>
                     </div>
-                </section>
+                </div>
 
-                <section class="form-section">
-                    <h3>Datos Personales</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="nombreAfectado">Nombre Afectado</label>
-                            <input type="text" id="nombreAfectado" placeholder="Nombre completo">
+                <!-- PASO 3: AFECTADO -->
+                <div class="step" data-step="3" hidden>
+                    <div class="card">
+                        <h3>Persona afectada</h3>
+                        <div class="field">
+                            <label for="nombreAfectado">Nombre</label>
+                            <input type="text" id="nombreAfectado" placeholder="Nombre de la persona o familia">
                         </div>
-                        <div class="form-group">
-                            <label for="fono">Fono</label>
-                            <input type="text" id="fono" placeholder="Teléfono de contacto">
+                        <div class="field">
+                            <label for="fono">Teléfono</label>
+                            <input type="tel" id="fono" inputmode="tel" placeholder="9 XXXX XXXX">
                         </div>
-                        <div class="form-group rojo-only" style="display:none;">
-                            <label for="rut">RUT</label>
-                            <input type="text" id="rut" placeholder="Ej: 12345678-9" inputmode="numeric">
-                        </div>
-                        <div class="form-group rojo-only" style="display:none;">
-                            <label for="visitaCon">Visita Realizada Con</label>
-                            <input type="text" id="visitaCon" placeholder="Nombre del acompañante">
-                        </div>
-                    </div>
-                </section>
-
-                <section class="form-section">
-                    <h3>Reporte Concluyente</h3>
-                    <div class="form-grid">
-                        <div class="form-group full-width">
-                            <label>Opción seleccionada:</label>
-                            <div class="radio-group">
-                                <label class="radio-label">
-                                    <input type="radio" name="reporteConcluyente" value="HABITABLE"> HABITABLE
-                                </label>
-                                <label class="radio-label">
-                                    <input type="radio" name="reporteConcluyente" value="HABITABLE CON TRABAJOS DE MITIGACION"> HABITABLE CON MITIGACIÓN
-                                </label>
-                                <label class="radio-label">
-                                    <input type="radio" name="reporteConcluyente" value="INHABITABLE. EVACUAR, NO RECUPERABLE"> INHABITABLE
-                                </label>
+                        <div class="rojo-only" hidden>
+                            <div class="field">
+                                <label for="rut">RUT</label>
+                                <input type="text" id="rut" inputmode="numeric" placeholder="12.345.678-K">
+                            </div>
+                            <div class="field">
+                                <label for="visitaCon">Visita realizada con</label>
+                                <input type="text" id="visitaCon" placeholder="¿Quién acompañó la visita?">
                             </div>
                         </div>
-                        <div class="form-group full-width">
+                    </div>
+                </div>
+
+                <!-- PASO 4: DIAGNÓSTICO -->
+                <div class="step" data-step="4" hidden>
+                    <div class="card">
+                        <h3>Diagnóstico del lugar</h3>
+                        <fieldset class="field">
+                            <legend>Reporte concluyente</legend>
+                            <div class="radio-col">
+                                <label class="radio-card"><input type="radio" name="reporteConcluyente" value="HABITABLE"><span>HABITABLE</span></label>
+                                <label class="radio-card"><input type="radio" name="reporteConcluyente" value="HABITABLE CON TRABAJOS DE MITIGACION"><span>HABITABLE CON TRABAJOS DE MITIGACIÓN</span></label>
+                                <label class="radio-card"><input type="radio" name="reporteConcluyente" value="INHABITABLE. EVACUAR, NO RECUPERABLE"><span>INHABITABLE. EVACUAR, NO RECUPERABLE</span></label>
+                            </div>
+                        </fieldset>
+                        <div class="field">
                             <label for="conclusion">Conclusión</label>
-                            <textarea id="conclusion" rows="3" placeholder="Resumen del reporte concluyente..."></textarea>
+                            <textarea id="conclusion" rows="3" placeholder="Resumen del estado del lugar"></textarea>
+                        </div>
+                        <div class="field">
+                            <label for="descripcion">Descripción de lo ocurrido <span class="req">*</span></label>
+                            <textarea id="descripcion" rows="4" placeholder="Cuenta qué pasó, mínimo 10 caracteres"></textarea>
                         </div>
                     </div>
-                </section>
+                </div>
 
-                <section class="form-section">
-                    <h3>Control Documental</h3>
-                    <p class="section-hint">Complete estos datos antes de generar el informe de emergencia. También puede completarlos en la vista de Control Documental.</p>
-                    <input type="hidden" id="codigoSeguimiento" value="">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="sectorialSelect">Sectorial (Delegación)</label>
-                            <select id="sectorialSelect">
-                                <option value="">Seleccionar sector...</option>
-                            </select>
+                <!-- PASO 5: CAUSAS Y MEDIDAS -->
+                <div class="step" data-step="5" hidden>
+                    <div class="card">
+                        <h3>Causas y medidas</h3>
+                        <div class="field">
+                            <label for="causasInput">Causas</label>
+                            <div class="chip-input"><input type="text" id="causasInput" placeholder="Escribe y presiona Enter"><button type="button" id="btnAddCausa" class="btn btn-ghost btn-sm">Agregar</button></div>
+                            <ul id="causasList" class="chip-list"></ul>
                         </div>
-                        <div class="form-group">
-                            <label for="sectorialPersonaSelect">Encargado del Sector</label>
-                            <select id="sectorialPersonaSelect">
-                                <option value="">Seleccionar encargado...</option>
-                            </select>
-                            <span class="control-contacto" id="sectorialContacto"></span>
+                        <div class="field">
+                            <label for="peligrosidadInput">Peligrosidad</label>
+                            <div class="chip-input"><input type="text" id="peligrosidadInput" placeholder="Escribe y presiona Enter"><button type="button" id="btnAddPeligro" class="btn btn-ghost btn-sm">Agregar</button></div>
+                            <ul id="peligrosidadList" class="chip-list"></ul>
                         </div>
-                        <div class="form-group">
-                            <label for="profesionalCargo">Profesional a Cargo</label>
-                            <select id="profesionalCargo">
-                                <option value="">Seleccionar...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="derivadoPor">Derivado por</label>
-                            <select id="derivadoPor">
-                                <option value="">Seleccionar...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="prioridadSelect">Prioridad</label>
-                            <select id="prioridadSelect">
-                                <option value="">Seleccionar...</option>
-                                <option value="alta">Alta</option>
-                                <option value="media">Media</option>
-                                <option value="baja">Baja</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="ubicacionGeo">Ubicación Georeferenciada</label>
-                            <input type="text" id="ubicacionGeo" placeholder="Link de Google Maps o sector (se auto-llena)">
-                        </div>
-                        <div class="form-group">
-                            <label for="fechaDerivacion">Fecha de Derivación</label>
-                            <input type="date" id="fechaDerivacion">
-                        </div>
-                        <div class="form-group">
-                            <label for="fechaEntrega">Fecha de Entrega de Informe</label>
-                            <input type="date" id="fechaEntrega">
+                        <div id="recomendacionesField" class="field">
+                            <label for="recomendacionesInput">Recomendaciones</label>
+                            <div class="chip-input"><input type="text" id="recomendacionesInput" placeholder="Escribe y presiona Enter"><button type="button" id="btnAddRecomendacion" class="btn btn-ghost btn-sm">Agregar</button></div>
+                            <ul id="recomendacionesList" class="chip-list"></ul>
                         </div>
                     </div>
-                </section>
+                </div>
 
-                <section class="form-section">
-                    <h3>Descripción de la Emergencia</h3>
-                    <div class="form-grid">
-                        <div class="form-group full-width">
-                            <label for="descripcion">Ubicación y Descripción de la Emergencia</label>
-                            <textarea id="descripcion" rows="5" placeholder="Descripción detallada de la emergencia..."></textarea>
+                <!-- PASO 6: EVIDENCIA -->
+                <div class="step" data-step="6" hidden>
+                    <div class="card">
+                        <h3>Evidencia fotográfica</h3>
+                        <div class="field">
+                            <label>Fotos del lugar (antes)</label>
+                            <div class="upload-row">
+                                <input type="file" id="imageUploadAntes" accept="image/*" multiple hidden>
+                                <button type="button" id="btnUploadImageAntes" class="btn btn-ghost">Subir fotos</button>
+                                <span id="storageInfoAntes" class="storage-info"></span>
+                            </div>
+                            <div id="imagePreviewListAntes" class="image-grid"></div>
+                        </div>
+                        <div class="field">
+                            <label>Fotos de seguimiento (después)</label>
+                            <div class="upload-row">
+                                <input type="file" id="imageUploadDespues" accept="image/*" multiple hidden>
+                                <button type="button" id="btnUploadImageDespues" class="btn btn-ghost">Subir fotos</button>
+                                <span id="storageInfoDespues" class="storage-info"></span>
+                            </div>
+                            <div id="imagePreviewListDespues" class="image-grid"></div>
                         </div>
                     </div>
-                </section>
+                </div>
 
-                <section class="form-section">
-                    <h3>Causas Estimadas de la Emergencia</h3>
-                    <div id="causasList" class="dynamic-list"></div>
-                    <button type="button" class="btn btn-add" id="btnAddCausa">+ Agregar causa</button>
-                </section>
-
-                <section class="form-section">
-                    <h3>Condición de Peligrosidad</h3>
-                    <div id="peligrosidadList" class="dynamic-list"></div>
-                    <button type="button" class="btn btn-add" id="btnAddPeligro">+ Agregar condición</button>
-                </section>
-
-                <section class="form-section recomendaciones-section" id="recomendacionesSection">
-                    <h3>Recomendaciones Post Emergencia</h3>
-                    <div id="recomendacionesList" class="dynamic-list"></div>
-                    <button type="button" class="btn btn-add" id="btnAddRecomendacion">+ Agregar recomendación</button>
-                </section>
-
-                <section class="form-section">
-                    <h3>Evidencia Fotográfica - Antes de la Visita</h3>
-                    <div class="form-group full-width">
-                        <input type="file" id="imageUploadAntes" accept="image/*" multiple style="display:none;">
-                        <button type="button" class="btn btn-add" id="btnUploadImageAntes">+ Seleccionar imágenes</button>
-                        <span class="storage-info" id="storageInfoAntes"></span>
+                <!-- PASO 7: CONTROL DOCUMENTAL -->
+                <div class="step" data-step="7" hidden>
+                    <div class="card">
+                        <h3>Control documental</h3>
+                        <div class="field">
+                            <label for="codigoSeguimiento">Código de seguimiento</label>
+                            <input type="text" id="codigoSeguimiento" class="mono" readonly>
+                        </div>
+                        <div class="grid-2">
+                            <div class="field">
+                                <label for="sectorialSelect">Sectorial / Delegación</label>
+                                <select id="sectorialSelect" class="select-wide"></select>
+                            </div>
+                            <div class="field">
+                                <label for="sectorialPersonaSelect">Persona encargada</label>
+                                <select id="sectorialPersonaSelect" class="select-wide"></select>
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="field">
+                                <label for="sectorialContacto">Contacto</label>
+                                <input type="text" id="sectorialContacto" readonly>
+                            </div>
+                            <div class="field">
+                                <label for="profesionalCargo">Profesional a cargo</label>
+                                <select id="profesionalCargo" class="select-wide"></select>
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="field">
+                                <label for="derivadoPor">Derivado por</label>
+                                <select id="derivadoPor" class="select-wide"></select>
+                            </div>
+                            <div class="field">
+                                <label for="prioridadSelect">Prioridad</label>
+                                <select id="prioridadSelect" class="select-wide">
+                                    <option value="">Selecciona...</option>
+                                    <option value="alta">Alta (48 h)</option>
+                                    <option value="media">Media (72 h)</option>
+                                    <option value="baja">Baja (96 h)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="field">
+                                <label for="fechaDerivacion">Fecha de derivación</label>
+                                <input type="date" id="fechaDerivacion">
+                            </div>
+                            <div class="field">
+                                <label for="fechaEntrega">Fecha de entrega</label>
+                                <input type="date" id="fechaEntrega">
+                            </div>
+                        </div>
                     </div>
-                    <div id="imagePreviewListAntes" class="image-preview-grid"></div>
-                </section>
+                </div>
 
-                <section class="form-section">
-                    <h3>Evidencia Fotográfica - Después de la Visita</h3>
-                    <div class="form-group full-width">
-                        <input type="file" id="imageUploadDespues" accept="image/*" multiple style="display:none;">
-                        <button type="button" class="btn btn-add" id="btnUploadImageDespues">+ Seleccionar imágenes</button>
-                        <span class="storage-info" id="storageInfoDespues"></span>
+                <!-- PASO 8: REVISAR -->
+                <div class="step" data-step="8" hidden>
+                    <div class="card">
+                        <h3>Revisa antes de guardar</h3>
+                        <div id="saveSummaryList" class="summary-list"></div>
                     </div>
-                    <div id="imagePreviewListDespues" class="image-preview-grid"></div>
-                </section>
-
-                <section class="form-section">
-                    <h3>Firmas</h3>
-                    <p class="storage-info">Las firmas del informe se generan automáticamente desde el Control Documental: sectorial, profesional a cargo y derivado.</p>
-                </section>
+                </div>
             </form>
 
-            <div class="save-summary" id="saveSummary" hidden>
-                <div class="save-summary-header">
-                    <h3>Verifique la información antes de guardar</h3>
-                    <p>Revise el estado de cada sección. Los errores impiden guardar; los avisos no.</p>
-                </div>
-                <div class="save-summary-list" id="saveSummaryList"></div>
-                <div class="save-summary-actions">
-                    <button type="button" class="btn btn-secondary" id="btnSummaryBack">Volver a revisar</button>
-                    <button type="button" class="btn btn-success" id="btnSummarySave">Guardar Informe</button>
-                </div>
+            <div class="form-nav">
+                <button id="btnStepBack" class="btn btn-ghost" hidden>&larr; Anterior</button>
+                <button id="btnStepNext" class="btn btn-primary">Siguiente &rarr;</button>
+                <button id="btnSummarySave" class="btn btn-accent" hidden>Confirmar y guardar</button>
             </div>
-        </div>
+        </section>
 
-        <div class="view-container" id="viewContainer" style="display:none;">
-            <div class="form-header">
-                <h2>Vista Previa de Informe</h2>
-                <span class="vista-estado" id="vistaEstado" style="display:none;"></span>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" id="btnBackToList">Volver</button>
-                    <button type="button" class="btn btn-primary" id="btnEditFromView" data-role="admin,creador,editor">Editar</button>
-                    <button type="button" class="btn btn-secondary" id="btnDuplicateFromView" data-role="admin,creador">Duplicar</button>
-                    <button type="button" class="btn btn-danger" id="btnDeleteFromView" data-role="admin">Eliminar</button>
-                    <button type="button" class="btn btn-success" id="btnExportPdf">Exportar PDF</button>
-                </div>
+        <!-- ============ CONTROL DOCUMENTAL ============ -->
+        <section id="view-control" class="view" hidden>
+            <div class="view-header">
+                <h2>Control documental</h2>
+                <button id="btnRefreshControl" class="btn btn-ghost btn-sm">Actualizar</button>
             </div>
-            <div id="pdfContent" class="pdf-content"></div>
-        </div>
-
-        <div class="control-container" id="controlContainer" style="display:none;">
-            <div class="form-header">
-                <h2>Control Documental</h2>
-                <p class="control-subtitle">Complete el control antes de generar cada informe de emergencia</p>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" id="btnBackFromControl">Volver</button>
-                </div>
-            </div>
-            <div class="table-wrapper">
+            <div class="control-wrap">
                 <table class="control-table">
-                    <caption class="visually-hidden">Control documental de informes de emergencia</caption>
                     <thead>
                         <tr>
-                            <th>N&ordm;</th>
+                            <th>N°</th>
                             <th>Motivo</th>
-                            <th>N&ordm; Seg.</th>
+                            <th>N° Seg.</th>
                             <th>Estado</th>
                             <th>Sectorial</th>
                             <th>Profesional</th>
                             <th>Derivado</th>
-                            <th>F. Derivación</th>
+                            <th>F. Deriv.</th>
                             <th>F. Visita</th>
                             <th>F. Entrega</th>
                             <th>Prioridad</th>
                             <th>Horas</th>
-                            <th>Ubicación</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="controlTableBody"></tbody>
                 </table>
             </div>
-        </div>
-    </main>
-    </div>
-</div>
+        </section>
 
-<!-- ============ USER MANAGEMENT MODAL ============ -->
-<div class="modal-overlay" id="userModal" style="display:none;">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="userModalTitle">
-        <div class="modal-header">
-            <h3 id="userModalTitle">Gestionar Usuarios</h3>
-            <button type="button" class="btn btn-ghost" id="btnCloseModal" aria-label="Cerrar">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="modal-form">
-                <h4>Agregar Usuario</h4>
-                <div class="modal-form-grid">
-                    <div class="form-group">
-                        <label for="newUserName">Nombre</label>
-                        <input type="text" id="newUserName" placeholder="Nombre completo">
-                    </div>
-                    <div class="form-group">
-                        <label for="newUserLogin">Usuario</label>
-                        <input type="text" id="newUserLogin" placeholder="Nombre de usuario">
-                    </div>
-                    <div class="form-group">
-                        <label for="newUserPass">Contraseña</label>
-                        <input type="password" id="newUserPass" placeholder="Contraseña">
-                    </div>
-                    <div class="form-group">
-                        <label for="newUserRole">Perfil</label>
-                        <select id="newUserRole">
-                            <option value="editor">Editor (ver y editar informes)</option>
-                            <option value="creador">Creador (crear y editar informes)</option>
-                            <option value="admin">Administrador (control total)</option>
-                        </select>
-                    </div>
-                </div>
-                <button type="button" class="btn btn-primary" id="btnAddUser">Agregar Usuario</button>
+        <!-- ============ PAPELERA ============ -->
+        <section id="view-papelera" class="view" hidden>
+            <div class="view-header">
+                <h2>Papelera</h2>
             </div>
-            <div class="users-list" id="usersList"></div>
+            <p class="muted-text">Los informes borrados aparecen aquí. Puedes restaurarlos o eliminarlos definitivamente.</p>
+            <div id="papeleraList" class="ficha-grid"></div>
+            <div id="papeleraEmpty" class="empty-state" hidden>
+                <div class="empty-disc">&#128465;</div>
+                <h3>La papelera está vacía</h3>
+                <p>Cuando borres un informe, aparecerá aquí.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- ============ MODALES ============ -->
+    <div id="overlay" class="overlay" hidden></div>
+
+    <div id="userModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="userModalTitle" hidden>
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="userModalTitle">Administrar usuarios</h3>
+                <button class="icon-btn" data-close-modal aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm" novalidate>
+                    <div class="grid-2">
+                        <div class="field"><label for="newUserName">Nombre</label><input type="text" id="newUserName"></div>
+                        <div class="field"><label for="newUserLogin">Usuario</label><input type="text" id="newUserLogin"></div>
+                        <div class="field"><label for="newUserPass">Contraseña</label><input type="text" id="newUserPass"></div>
+                        <div class="field">
+                            <label for="newUserRole">Rol</label>
+                            <select id="newUserRole" class="select-wide">
+                                <option value="editor">Editor (ver y editar)</option>
+                                <option value="creador">Creador (crear y editar)</option>
+                                <option value="admin">Administrador (control total)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Agregar usuario</button>
+                </form>
+                <div id="usersList" class="users-list"></div>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="overlay" id="overlay"></div>
-
-<!-- ============ CREDENTIALS MODAL ============ -->
-<div class="modal-overlay" id="credsModal" style="display:none;">
-    <div class="modal-card modal-sm" role="dialog" aria-modal="true" aria-labelledby="credsModalTitle">
-        <div class="modal-header">
-            <h3 id="credsModalTitle">Credenciales de Acceso</h3>
-            <button type="button" class="btn btn-ghost" id="btnCloseCredsModal" aria-label="Cerrar">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="creds-table" id="credsTable"></div>
+    <div id="credsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="credsModalTitle" hidden>
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="credsModalTitle">Credenciales de la app</h3>
+                <button class="icon-btn" data-close-modal aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table id="credsTable" class="creds-table"></table>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="toast-container" id="toastContainer" aria-live="polite"></div>
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
-<script src="js/datos-maestros.js?v=8"></script>
-<script src="js/ayudas.js?v=8"></script>
-<script src="js/validacion.js?v=8"></script>
-<script src="app.js?v=8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/datos-maestros.js?v=1"></script>
+<script src="js/ayudas.js?v=1"></script>
+<script src="js/validacion.js?v=1"></script>
+<script src="js/core.js?v=1"></script>
+<script src="js/data.js?v=1"></script>
+<script src="js/auth.js?v=1"></script>
+<script src="js/formulario.js?v=1"></script>
+<script src="js/lista.js?v=1"></script>
+<script src="js/dashboard.js?v=1"></script>
+<script src="js/control.js?v=1"></script>
+<script src="js/pdf.js?v=1"></script>
+<script src="js/app.js?v=1"></script>
 </body>
 </html>
