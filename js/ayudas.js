@@ -13,7 +13,7 @@ const CAMPO_AYUDAS = {
     },
     tipoEmergencia: {
         ayuda: '¿Qué pasó? Describa el tipo de evento en pocas palabras.',
-        ejemplo: 'Ej: Deslizamiento de masa, Incendio, Inundación'
+        ejemplo: 'Ej: Remoción en masa, Incendio, Inundación'
     },
     registroNum: {
         ayuda: 'Número correlativo asignado automáticamente por el sistema. No lo modifique.'
@@ -70,7 +70,7 @@ const CAMPO_AYUDAS = {
         ejemplo: 'Seleccione una opción de la lista.'
     },
     derivadoPor: {
-        ayuda: 'Persona o unidad que derivó la emergencia al equipo.',
+        ayuda: 'Persona o unidad a la que se deriva la emergencia.',
         ejemplo: 'Seleccione una opción de la lista.'
     },
     prioridadSelect: {
@@ -133,7 +133,7 @@ const CAMPOS_REQUERIDOS_GUARDAR = [
 
 // Sugerencias para el campo "Tipo de Emergencia"
 const TIPOS_EMERGENCIA = [
-    'Deslizamiento de masa',
+    'Remoción en masa',
     'Incendio',
     'Inundación',
     'Caída de árbol',

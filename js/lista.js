@@ -113,7 +113,7 @@ async function actualizarPapeleraCount() {
 const CONTROL_REQUERIDOS = [
     { campo: 'sectorialPersona', label: 'Persona encargada de la sectorial' },
     { campo: 'profesionalCargo', label: 'Profesional a cargo' },
-    { campo: 'derivadoPor', label: 'Derivado por' },
+    { campo: 'derivadoPor', label: 'Derivado a' },
     { campo: 'prioridad', label: 'Prioridad' },
     { campo: 'fechaDerivacion', label: 'Fecha de derivación' },
     { campo: 'fechaVisita', label: 'Fecha de visita' },

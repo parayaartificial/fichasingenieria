@@ -99,7 +99,7 @@ function renderPdfContent(f) {
                     ${filaControl('Sectorial', f.sectorial)}
                     ${filaControl('Persona encargada', f.sectorialPersona)}
                     ${filaControl('Profesional a cargo', f.profesionalCargo)}
-                    ${filaControl('Derivado por', f.derivadoPor)}
+                    ${filaControl('Derivado a', f.derivadoPor)}
                     ${filaControl('Prioridad', f.prioridad ? f.prioridad.charAt(0).toUpperCase() + f.prioridad.slice(1) : '')}
                     ${filaControl('Fecha derivación', f.fechaDerivacion)}
                     ${filaControl('Fecha entrega', f.fechaEntrega)}
