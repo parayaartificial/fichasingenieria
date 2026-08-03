@@ -542,6 +542,8 @@ function showForm(ficha, esNuevoCaso) {
     controlContainer.style.display = 'none';
     formContainer.style.display = '';
     formContainer.style.animation = 'fadeSlideIn 0.3s ease';
+    $('#saveSummary').hidden = true;
+    limpiarMarcas();
 
     if (ficha) {
         formTitle.textContent = esNuevoCaso ? 'Nuevo Caso' : 'Editar Informe';
@@ -568,6 +570,7 @@ function showForm(ficha, esNuevoCaso) {
     }
 
     formContainer.scrollIntoView({ behavior: 'smooth' });
+    actualizarNavSecciones();
 }
 
 function fillForm(f) {
@@ -623,13 +626,13 @@ function getFormData() {
         semaforo: semaforoColor.value,
         tipoEmergencia: $('#tipoEmergencia').value.trim(),
         registroNum: parseInt($('#registroNum').value, 10) || 1,
-        sector: $('#sector').value.trim(),
-        calle: $('#calle').value.trim(),
+        sector: capitalizarNombre($('#sector').value.trim()),
+        calle: capitalizarNombre($('#calle').value.trim()),
         fechaVisita: $('#fechaVisita').value,
-        nombreAfectado: $('#nombreAfectado').value.trim(),
-        fono: $('#fono').value.trim(),
-        rut: $('#rut').value.trim(),
-        visitaCon: $('#visitaCon').value.trim(),
+        nombreAfectado: capitalizarNombre($('#nombreAfectado').value.trim()),
+        fono: mascaraFono($('#fono').value.trim()),
+        rut: mascaraRut($('#rut').value.trim()),
+        visitaCon: capitalizarNombre($('#visitaCon').value.trim()),
         reporteConcluyente: reporteRadio ? reporteRadio.value : '',
         conclusion: $('#conclusion').value.trim(),
         descripcion: $('#descripcion').value.trim(),
@@ -670,6 +673,7 @@ function selectSemaforo(color) {
     $$('.rojo-only').forEach(el => { el.style.display = color === 'rojo' ? '' : 'none'; });
     recomendacionesSection.style.display = color === 'rojo' ? 'none' : '';
     autoSelectRadio(color);
+    marcarCampoVivo('semaforo', validarCampoVivo('semaforo', color, {}));
 }
 
 function autoSelectRadio(color) {
@@ -974,6 +978,12 @@ function showControlView() {
             llenarSelect(tr.querySelector('[data-field="derivadoPor"]'), DERIVADOS, f.derivadoPor || '');
             tr.querySelector('[data-field="prioridad"]').value = f.prioridad || '';
 
+            tr.querySelectorAll('[data-field]').forEach(el => {
+                const clave = CAMPO_TABLE_ALIAS[el.dataset.field];
+                const info = clave ? CAMPO_AYUDAS[clave] : null;
+                if (info) el.title = info.ayuda + (info.ejemplo ? ' (Ej: ' + info.ejemplo + ')' : '');
+            });
+
             sectorSel.addEventListener('change', () => {
                 const sector = sectorSel.value;
                 llenarSelect(personaSel, (SECTORES[sector] || []).map(p => p.nombre), '');
@@ -1096,11 +1106,11 @@ function generarInforme(tr, fichaId) {
     updateControlFields(fichaId, campos).then(() => viewFicha(fichaId));
 }
 
-function llenarSelect(select, opciones, seleccionado) {
+function llenarSelect(select, opciones, seleccionado, textoVacio) {
     select.innerHTML = '';
     const vacio = document.createElement('option');
     vacio.value = '';
-    vacio.textContent = '-';
+    vacio.textContent = textoVacio || '-';
     select.appendChild(vacio);
     opciones.forEach(opt => {
         const option = document.createElement('option');
@@ -1113,7 +1123,7 @@ function llenarSelect(select, opciones, seleccionado) {
 
 function poblarPersonasForm(sector) {
     const personaSel = $('#sectorialPersonaSelect');
-    llenarSelect(personaSel, (SECTORES[sector] || []).map(p => p.nombre), '');
+    llenarSelect(personaSel, (SECTORES[sector] || []).map(p => p.nombre), '', 'Seleccionar encargado...');
 }
 
 function actualizarContactoForm(sector, persona) {
@@ -1123,9 +1133,9 @@ function actualizarContactoForm(sector, persona) {
 }
 
 function initControlSelects() {
-    llenarSelect($('#sectorialSelect'), Object.keys(SECTORES), '');
-    llenarSelect($('#profesionalCargo'), PROFESIONALES, '');
-    llenarSelect($('#derivadoPor'), DERIVADOS, '');
+    llenarSelect($('#sectorialSelect'), Object.keys(SECTORES), '', 'Seleccionar sector...');
+    llenarSelect($('#profesionalCargo'), PROFESIONALES, '', 'Seleccionar...');
+    llenarSelect($('#derivadoPor'), DERIVADOS, '', 'Seleccionar...');
     $('#prioridadSelect').value = '';
 
     $('#sectorialSelect').addEventListener('change', () => {
@@ -1382,16 +1392,31 @@ btnBackToList.addEventListener('click', () => {
 btnSave.addEventListener('click', () => {
     try {
         const data = getFormData();
+        const res = validarFormularioCompleto(data, loadFichasSync());
+        mostrarResumenVerificacion(res);
+    } catch (e) {
+        console.error('Error validando ficha:', e);
+        alert('Error al validar: ' + (e.message || 'Error desconocido'));
+    }
+});
 
-        if (!data.semaforo) {
-            alert('Debe seleccionar un color de semaforo.');
-            return;
-        }
-        if (!data.sector) {
-            alert('Debe ingresar el sector.');
-            return;
-        }
+$('#btnSummarySave').addEventListener('click', ejecutarGuardado);
 
+$('#btnSummaryBack').addEventListener('click', () => {
+    $('#saveSummary').hidden = true;
+    const primerError = document.querySelector('.campo-error');
+    if (primerError) {
+        primerError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const foco = primerError.querySelector('input, select, textarea') || primerError;
+        foco.focus({ preventScroll: true });
+    } else {
+        $('#formContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+});
+
+function ejecutarGuardado() {
+    try {
+        const data = getFormData();
         loadFichas().then(fichas => {
             const existingIndex = fichas.findIndex(f => f.id === data.id);
 
@@ -1402,6 +1427,7 @@ btnSave.addEventListener('click', () => {
             }
 
             saveFichas(fichas);
+            $('#saveSummary').hidden = true;
             renderFichasList();
             viewFicha(data.id);
         }).catch(e => {
@@ -1412,7 +1438,85 @@ btnSave.addEventListener('click', () => {
         console.error('Error guardando ficha:', e);
         alert('Error al guardar: ' + (e.message || 'Error desconocido'));
     }
-});
+}
+
+function SEL_CAMPO(campo) {
+    if (campo === 'semaforo') return '.semaforo-buttons';
+    const aliases = {
+        sectorial: 'sectorialSelect',
+        sectorialPersona: 'sectorialPersonaSelect',
+        prioridad: 'prioridadSelect'
+    };
+    return '#' + (aliases[campo] || campo);
+}
+
+function irACampo(campo) {
+    const el = document.querySelector(SEL_CAMPO(campo));
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const foco = el.closest('.form-group, .semaforo-selector') || el;
+    foco.setAttribute('tabindex', '-1');
+    foco.focus({ preventScroll: true });
+}
+
+function mostrarResumenVerificacion(res) {
+    const lista = $('#saveSummaryList');
+    lista.innerHTML = '';
+    const errores = res.errores;
+    const avisos = res.avisos;
+
+    if (errores.length === 0 && avisos.length === 0) {
+        const ok = document.createElement('div');
+        ok.className = 'save-item save-item-ok';
+        ok.textContent = 'Todo en orden: el informe se guardará correctamente.';
+        lista.appendChild(ok);
+    }
+
+    const agrupar = (items, tipo) => {
+        const seccionMap = {};
+        items.forEach(it => {
+            const seccion = it.seccion || 'Formulario';
+            if (!seccionMap[seccion]) seccionMap[seccion] = [];
+            seccionMap[seccion].push(it);
+        });
+        Object.keys(seccionMap).forEach(seccion => {
+            const grupo = document.createElement('div');
+            grupo.className = 'save-group save-group-' + tipo;
+            const titulo = document.createElement('div');
+            titulo.className = 'save-group-titulo';
+            titulo.textContent = seccion;
+            grupo.appendChild(titulo);
+            seccionMap[seccion].forEach(it => {
+                const item = document.createElement('div');
+                item.className = 'save-item save-item-' + tipo;
+                const texto = document.createElement('span');
+                texto.className = 'save-item-texto';
+                texto.innerHTML = '<strong>' + escapeHtml(it.label || it.campo) + ':</strong> ' + escapeHtml(it.msg || it.mensaje || '');
+                item.appendChild(texto);
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn btn-sm btn-link save-item-link';
+                btn.textContent = 'Ir al campo';
+                btn.addEventListener('click', () => irACampo(it.campo));
+                item.appendChild(btn);
+                grupo.appendChild(item);
+            });
+            lista.appendChild(grupo);
+        });
+    };
+
+    agrupar(errores, 'error');
+    agrupar(avisos, 'aviso');
+
+    const okSave = errores.length === 0;
+    const btnFinal = $('#btnSummarySave');
+    btnFinal.disabled = !okSave;
+    btnFinal.title = okSave ? 'Guardar el informe' : 'Resuelva los errores marcados para poder guardar';
+
+    const cont = $('#saveSummary');
+    cont.hidden = false;
+    cont.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
 // ============ CONTROL DOCUMENTAL NAV ============
 btnControlDoc.addEventListener('click', () => {
@@ -1781,9 +1885,288 @@ $('#credsModal').addEventListener('click', (e) => { if (e.target === $('#credsMo
 const sidebarFooter = $('.sidebar-footer');
 if (sidebarFooter) sidebarFooter.appendChild(btnShowCreds);
 
+// ============ AYUDAS DE LLENADO ============
+function contenedorDeCampo(campo) {
+    if (campo === 'semaforo') return document.querySelector('.semaforo-selector');
+    if (campo === 'reporteConcluyente') {
+        const rg = document.querySelector('.radio-group');
+        return rg ? rg.closest('.form-group') : null;
+    }
+    if (campo === 'causas' || campo === 'peligrosidad' || campo === 'recomendaciones') {
+        const listaId = { causas: '#causasList', peligrosidad: '#peligrosidadList', recomendaciones: '#recomendacionesList' }[campo];
+        const lista = document.querySelector(listaId);
+        return lista ? lista.closest('.form-section') : null;
+    }
+    if (campo === 'imagenesAntes') {
+        const btn = $('#btnUploadImageAntes');
+        return btn ? btn.closest('.form-group') : null;
+    }
+    if (campo === 'imagenesDespues') {
+        const btn = $('#btnUploadImageDespues');
+        return btn ? btn.closest('.form-group') : null;
+    }
+    const el = document.getElementById(campo);
+    if (!el) return null;
+    if (el.type === 'hidden') return null;
+    return el.closest('.form-group');
+}
+
+function montarAyudas() {
+    Object.keys(CAMPO_AYUDAS).forEach(campo => {
+        const info = CAMPO_AYUDAS[campo];
+        const contenedor = contenedorDeCampo(campo);
+        if (!contenedor || contenedor.querySelector('.field-help')) return;
+
+        const help = document.createElement('small');
+        help.className = 'field-help';
+        const ejemplo = info.ejemplo ? ' <span class="field-help-ejemplo">Ej: ' + escapeHtml(info.ejemplo) + '</span>' : '';
+        help.innerHTML = escapeHtml(info.ayuda) + ejemplo;
+        contenedor.appendChild(help);
+    });
+
+    $$('.form-section h3').forEach(h3 => {
+        if (!h3.nextElementSibling || !h3.nextElementSibling.classList.contains('field-help')) {
+            const help = document.createElement('small');
+            help.className = 'field-help field-help-titulo';
+            help.textContent = 'Los campos de esta sección se pueden completar ahora o después de guardar.';
+            h3.insertAdjacentElement('afterend', help);
+        }
+    });
+}
+
+// ============ VALIDACION EN VIVO ============
+function limpiarMarcas() {
+    $$('#informeForm .form-group, #informeForm .semaforo-selector, #informeForm .form-section').forEach(el => {
+        el.classList.remove('campo-ok', 'campo-error', 'campo-pendiente');
+    });
+    $$('#informeForm .field-error').forEach(el => el.remove());
+    $$('#informeForm [aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
+    if (typeof actualizarNavSecciones === 'function') actualizarNavSecciones();
+}
+
+function marcarCampoVivo(campo, res) {
+    const contenedor = contenedorDeCampo(campo);
+    if (!contenedor) return;
+
+    contenedor.classList.remove('campo-ok', 'campo-error', 'campo-pendiente');
+    const prevErr = contenedor.querySelector('.field-error');
+    if (prevErr) prevErr.remove();
+
+    const el = campo === 'semaforo' ? null : document.getElementById(campo);
+    if (el) {
+        el.setAttribute('aria-invalid', res.estado === 'error' ? 'true' : 'false');
+    }
+
+    if (res.estado === 'ok') {
+        contenedor.classList.add('campo-ok');
+    } else if (res.estado === 'pendiente') {
+        contenedor.classList.add('campo-pendiente');
+        if (campo === 'semaforo') {
+            const err = document.createElement('span');
+            err.className = 'field-error';
+            err.textContent = res.mensaje || 'Seleccione el tipo de informe';
+            document.querySelector('.semaforo-buttons').insertAdjacentElement('afterend', err);
+        } else if (el) {
+            const err = document.createElement('span');
+            err.className = 'field-error';
+            err.textContent = res.mensaje || 'Campo obligatorio';
+            el.insertAdjacentElement('afterend', err);
+        }
+    } else if (res.estado === 'error') {
+        contenedor.classList.add('campo-error');
+        const err = document.createElement('span');
+        err.className = 'field-error';
+        err.textContent = res.mensaje || 'Corrija este campo';
+        if (campo === 'semaforo') {
+            document.querySelector('.semaforo-buttons').insertAdjacentElement('afterend', err);
+        } else if (el) {
+            el.insertAdjacentElement('afterend', err);
+        }
+    }
+
+    actualizarNavSecciones();
+}
+
+const CAMPOS_VIVO = ['semaforo', 'sector', 'tipoEmergencia', 'descripcion', 'rut', 'fono', 'fechaVisita', 'fechaDerivacion', 'fechaEntrega'];
+
+function contextoFechas() {
+    return {
+        fechaDerivacion: $('#fechaDerivacion').value,
+        fechaEntrega: $('#fechaEntrega').value
+    };
+}
+
+function initValidacionVivo() {
+    CAMPOS_VIVO.forEach(campo => {
+        if (campo === 'semaforo') return;
+        const el = document.getElementById(campo);
+        if (!el) return;
+        el.addEventListener('blur', () => {
+            const res = validarCampoVivo(campo, el.value, contextoFechas());
+            marcarCampoVivo(campo, res);
+        });
+        el.addEventListener('input', () => {
+            const contenedor = contenedorDeCampo(campo);
+            if (contenedor && contenedor.classList.contains('campo-error')) {
+                contenedor.classList.remove('campo-error');
+                const prevErr = contenedor.querySelector('.field-error');
+                if (prevErr) prevErr.remove();
+                actualizarNavSecciones();
+            }
+        });
+    });
+
+    $('#rut').addEventListener('input', e => {
+        e.target.value = mascaraRut(e.target.value);
+    });
+    $('#fono').addEventListener('input', e => {
+        e.target.value = mascaraFono(e.target.value);
+    });
+
+    $('#sectorialSelect').addEventListener('change', () => {
+        marcarCampoVivo('sectorialSelect', validarCampoVivo('sectorialSelect', $('#sectorialSelect').value, {}));
+    });
+}
+
+function initDatalists() {
+    const dlTipo = $('#sugTipoEmergencia');
+    TIPOS_EMERGENCIA.forEach(t => {
+        const o = document.createElement('option');
+        o.value = t;
+        dlTipo.appendChild(o);
+    });
+    $('#tipoEmergencia').setAttribute('list', 'sugTipoEmergencia');
+
+    const dlSec = $('#sugSectores');
+    Object.keys(SECTORES).forEach(s => {
+        const o = document.createElement('option');
+        o.value = s;
+        dlSec.appendChild(o);
+    });
+    $('#sector').setAttribute('list', 'sugSectores');
+}
+
+// ============ NAV SECCIONES + PROGRESO ============
+function obtenerSeccionesForm() {
+    return Array.from(fichaForm.querySelectorAll('.form-section'));
+}
+
+function campoObligatorioEn(seccion, campo) {
+    const el = document.getElementById(campo);
+    return el && seccion.contains(el);
+}
+
+function inicializarNavSecciones() {
+    const nav = $('#formSectionsNav');
+    nav.innerHTML = '';
+
+    const chipSemaforo = document.createElement('button');
+    chipSemaforo.type = 'button';
+    chipSemaforo.className = 'nav-sec';
+    chipSemaforo.textContent = '1. Tipo de Informe';
+    chipSemaforo.dataset.seccion = 'semaforo';
+    chipSemaforo.setAttribute('aria-label', 'Ir a la sección Tipo de Informe');
+    chipSemaforo.addEventListener('click', () => {
+        const sel = document.querySelector('.semaforo-selector');
+        sel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        sel.setAttribute('tabindex', '-1');
+        sel.focus({ preventScroll: true });
+    });
+    nav.appendChild(chipSemaforo);
+
+    obtenerSeccionesForm().forEach((seccion, i) => {
+        const h3 = seccion.querySelector('h3');
+        if (!h3) return;
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'nav-sec';
+        chip.textContent = (i + 2) + '. ' + h3.textContent;
+        chip.dataset.seccion = i;
+        chip.setAttribute('aria-label', 'Ir a la sección ' + h3.textContent);
+        chip.addEventListener('click', () => {
+            h3.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            h3.focus({ preventScroll: true });
+        });
+        nav.appendChild(chip);
+    });
+}
+
+function actualizarNavSecciones() {
+    if (!fichaForm) return;
+    const chips = $$('#formSectionsNav .nav-sec');
+    const secciones = obtenerSeccionesForm();
+
+    let completadas = 0;
+    const totalObligatorios = CAMPOS_REQUERIDOS_GUARDAR.length + CONTROL_REQUERIDOS.length;
+
+    const chipSemaforo = chips[0];
+    if (chipSemaforo) {
+        chipSemaforo.classList.remove('done', 'error', 'pendiente');
+        chipSemaforo.classList.add(semaforoColor.value ? 'done' : 'pendiente');
+        if (semaforoColor.value) completadas++;
+    }
+
+    secciones.forEach((seccion, i) => {
+        const chip = chips[i + 1];
+        if (!chip) return;
+
+        let esObligatoria = false;
+        let completada = true;
+        let pendiente = false;
+
+        if (campoObligatorioEn(seccion, 'sector')) {
+            esObligatoria = true;
+            completada = !!$('#sector').value.trim();
+            pendiente = pendiente || !completada;
+        }
+        if (campoObligatorioEn(seccion, 'sectorialSelect')) {
+            esObligatoria = true;
+            const faltan = getFaltantesControl({
+                sectorial: $('#sectorialSelect').value,
+                sectorialPersona: $('#sectorialPersonaSelect').value,
+                profesionalCargo: $('#profesionalCargo').value,
+                derivadoPor: $('#derivadoPor').value,
+                prioridad: $('#prioridadSelect').value,
+                fechaDerivacion: $('#fechaDerivacion').value,
+                fechaVisita: $('#fechaVisita').value,
+                fechaEntrega: $('#fechaEntrega').value,
+                ubicacionGeo: $('#ubicacionGeo').value
+            });
+            completada = completada && faltan.length === 0;
+            pendiente = pendiente || faltan.length > 0;
+            const prevBadge = chip.querySelector('.nav-sec-badge');
+            if (prevBadge) prevBadge.remove();
+            const badge = document.createElement('span');
+            badge.className = 'nav-sec-badge';
+            badge.textContent = (CONTROL_REQUERIDOS.length - faltan.length) + '/' + CONTROL_REQUERIDOS.length;
+            chip.appendChild(badge);
+        }
+        const tieneError = seccion.querySelector('.campo-error') !== null;
+        if (tieneError) completada = false;
+
+        chip.classList.remove('done', 'error', 'pendiente');
+        if (tieneError) chip.classList.add('error');
+        else if (completada && esObligatoria) chip.classList.add('done');
+        else if (pendiente) chip.classList.add('pendiente');
+
+        if (esObligatoria && completada) completadas++;
+    });
+
+    const barra = $('#formProgressBar');
+    if (barra) {
+        const pct = totalObligatorios > 0 ? Math.round((completadas / totalObligatorios) * 100) : 0;
+        barra.style.width = pct + '%';
+        barra.textContent = completadas + '/' + totalObligatorios;
+    }
+}
+
 // ============ INIT ============
 initDefaultUsers();
 initControlSelects();
+montarAyudas();
+initDatalists();
+inicializarNavSecciones();
+initValidacionVivo();
 if (checkSession()) {
     showApp();
 } else {

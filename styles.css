@@ -972,6 +972,262 @@ h1, h2, h3, h4 {
     margin-top: 4px;
 }
 
+/* ============ AYUDAS DE LLENADO ============ */
+.field-help {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--gray-500);
+    margin-top: 5px;
+    line-height: 1.45;
+}
+
+.field-help-ejemplo { color: var(--navy-mid); font-weight: 500; }
+
+.field-help-titulo {
+    margin-top: -6px;
+    margin-bottom: 12px;
+    font-style: italic;
+    color: var(--gray-500);
+}
+
+/* ============ PANEL GUIA ============ */
+.form-guide {
+    background: var(--navy-soft);
+    border: 1px solid #C6D8E8;
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+}
+
+.form-guide summary {
+    cursor: pointer;
+    padding: 12px 16px;
+    font-weight: 700;
+    color: var(--navy);
+    font-size: 0.85rem;
+    list-style: none;
+    user-select: none;
+}
+
+.form-guide summary::-webkit-details-marker { display: none; }
+
+.form-guide summary::before {
+    content: "?";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin-right: 9px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+.form-guide[open] summary { border-bottom: 1px solid #C6D8E8; }
+
+.form-guide-body {
+    padding: 12px 16px 14px;
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    line-height: 1.6;
+}
+
+.form-guide-body ol { margin: 8px 0 0 18px; display: grid; gap: 6px; }
+
+.form-guide-tip {
+    margin-top: 12px;
+    padding: 8px 11px;
+    background: var(--amber-bg);
+    border-left: 3px solid var(--amber);
+    border-radius: var(--radius-sm);
+    font-size: 0.76rem;
+}
+
+/* ============ PROGRESO ============ */
+.form-progress {
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 999px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.form-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--green), var(--green-deep));
+    border-radius: 999px;
+    transition: width 0.3s ease;
+    font-size: 0.6rem;
+    line-height: 8px;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* ============ NAV SECCIONES ============ */
+.form-sections-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.nav-sec {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1.5px solid var(--gray-200);
+    background: var(--surface);
+    font-family: var(--font-body);
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.nav-sec:hover { border-color: var(--navy-mid); color: var(--navy); }
+
+.nav-sec:focus-visible { outline: 2px solid var(--navy-mid); outline-offset: 2px; }
+
+.nav-sec.done { border-color: var(--green); background: var(--green-bg); color: var(--green-deep); }
+.nav-sec.pendiente { border-color: var(--amber); background: var(--amber-bg); color: var(--amber-deep); }
+.nav-sec.error { border-color: var(--red); background: var(--red-bg); color: var(--red-deep); }
+
+.nav-sec-badge {
+    font-size: 0.64rem;
+    font-weight: 800;
+    background: var(--navy);
+    color: #fff;
+    border-radius: 999px;
+    padding: 1px 7px;
+    font-family: var(--font-mono);
+}
+
+/* ============ MARCAS DE VALIDACION EN VIVO ============ */
+.form-group.campo-ok { background: var(--green-bg); }
+.form-group.campo-ok > input,
+.form-group.campo-ok > select,
+.form-group.campo-ok > textarea { border-color: var(--green); background: #fff; }
+
+.form-group.campo-pendiente { background: var(--amber-bg); }
+.form-group.campo-pendiente > input,
+.form-group.campo-pendiente > select,
+.form-group.campo-pendiente > textarea { border-color: var(--amber); }
+
+.form-group.campo-error { background: var(--red-bg); }
+.form-group.campo-error > input,
+.form-group.campo-error > select,
+.form-group.campo-error > textarea { border-color: var(--red); background: #fff; }
+
+.semaforo-selector.campo-ok { border-color: var(--green); background: var(--green-bg); }
+.semaforo-selector.campo-pendiente { border-color: var(--amber); background: var(--amber-bg); }
+.semaforo-selector.campo-error { border-color: var(--red); background: var(--red-bg); }
+
+.field-error {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--red-deep);
+    margin-top: 5px;
+    font-weight: 600;
+}
+
+/* ============ RESUMEN DE VERIFICACION ============ */
+.save-summary {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    margin-top: 18px;
+    box-shadow: var(--shadow-md);
+}
+
+.save-summary-header h3 { font-size: 1.05rem; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
+.save-summary-header p { font-size: 0.78rem; color: var(--gray-500); margin-bottom: 14px; }
+
+.save-summary-list { display: grid; gap: 12px; }
+
+.save-group {
+    border-radius: var(--radius);
+    padding: 12px 14px;
+}
+
+.save-group-error { background: var(--red-bg); border: 1px solid #F2C3C5; }
+.save-group-aviso { background: var(--amber-bg); border: 1px solid #EFD9AC; }
+
+.save-group-titulo {
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gray-600);
+    margin-bottom: 8px;
+}
+
+.save-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 0;
+    border-top: 1px dashed rgba(20, 30, 45, 0.12);
+}
+
+.save-item:first-of-type { border-top: none; }
+
+.save-item-texto { font-size: 0.82rem; color: var(--gray-700); line-height: 1.5; }
+.save-item-error .save-item-texto { color: var(--red-deep); }
+
+.save-item-ok {
+    color: var(--green-deep);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 10px 12px;
+    background: var(--green-bg);
+    border-radius: var(--radius);
+    border: 1px solid #B9E3CA;
+}
+
+.save-item-link {
+    flex-shrink: 0;
+    font-size: 0.76rem;
+    color: var(--navy-mid);
+    font-weight: 700;
+    text-decoration: underline;
+}
+
+.save-summary-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--navy-mid);
+    text-decoration: underline;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font-body);
+}
+
+.btn-link:hover { color: var(--navy); }
+
+.btn:disabled,
+.btn-link:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Selector de semáforo */
 .semaforo-selector {
     background: var(--surface);

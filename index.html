@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=7">
+    <link rel="stylesheet" href="styles.css?v=8">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -138,8 +138,30 @@
                 </div>
             </div>
 
+            <details class="form-guide" id="formGuide">
+                <summary>¿Cómo llenar este informe?</summary>
+                <div class="form-guide-body">
+                    <p>Complete el formulario por secciones. Solo <strong>dos campos son obligatorios</strong> para guardar (Semáforo y Sector); el resto puede completarlo ahora o después.</p>
+                    <ol>
+                        <li><strong>Semáforo</strong>: indique el estado de la vivienda. <em>Verde</em> = habitable · <em>Amarillo</em> = habitable con mitigación · <em>Rojo</em> = inhabitable.</li>
+                        <li><strong>Datos de la emergencia</strong>: qué pasó, dónde, a quién afecta y el resultado de la visita.</li>
+                        <li><strong>Control Documental</strong>: delegación, profesional, prioridad y fechas. Son <strong>9 campos obligatorios para generar el informe</strong>; mientras falten, el informe queda como "Pendiente".</li>
+                        <li>Finalmente, desde la <strong>Vista Previa</strong> podrá exportar el informe en PDF con las firmas de la delegación y del profesional.</li>
+                    </ol>
+                    <p class="form-guide-tip">Consejo: si no sabe qué escribir en un campo, lea el texto de ayuda gris debajo de cada uno. En todos se indica un ejemplo.</p>
+                </div>
+            </details>
+
+            <div class="form-progress" id="formProgress" aria-hidden="true">
+                <div class="form-progress-bar" id="formProgressBar"></div>
+            </div>
+            <nav class="form-sections-nav" id="formSectionsNav" aria-label="Secciones del formulario"></nav>
+
             <form id="informeForm" autocomplete="off">
                 <input type="hidden" id="informeId" value="">
+
+                <datalist id="sugTipoEmergencia"></datalist>
+                <datalist id="sugSectores"></datalist>
 
                 <div class="semaforo-selector">
                     <label>Tipo de Informe (Semáforo):</label>
@@ -205,7 +227,7 @@
                         </div>
                         <div class="form-group rojo-only" style="display:none;">
                             <label for="rut">RUT</label>
-                            <input type="text" id="rut" placeholder="Ej: 12345678-9">
+                            <input type="text" id="rut" placeholder="Ej: 12345678-9" inputmode="numeric">
                         </div>
                         <div class="form-group rojo-only" style="display:none;">
                             <label for="visitaCon">Visita Realizada Con</label>
@@ -345,6 +367,18 @@
                     <p class="storage-info">Las firmas del informe se generan automáticamente desde el Control Documental: sectorial, profesional a cargo y derivado.</p>
                 </section>
             </form>
+
+            <div class="save-summary" id="saveSummary" hidden>
+                <div class="save-summary-header">
+                    <h3>Verifique la información antes de guardar</h3>
+                    <p>Revise el estado de cada sección. Los errores impiden guardar; los avisos no.</p>
+                </div>
+                <div class="save-summary-list" id="saveSummaryList"></div>
+                <div class="save-summary-actions">
+                    <button type="button" class="btn btn-secondary" id="btnSummaryBack">Volver a revisar</button>
+                    <button type="button" class="btn btn-success" id="btnSummarySave">Guardar Informe</button>
+                </div>
+            </div>
         </div>
 
         <div class="view-container" id="viewContainer" style="display:none;">
@@ -455,7 +489,9 @@
 
 <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-<script src="js/datos-maestros.js?v=7"></script>
-<script src="app.js?v=7"></script>
+<script src="js/datos-maestros.js?v=8"></script>
+<script src="js/ayudas.js?v=8"></script>
+<script src="js/validacion.js?v=8"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>
