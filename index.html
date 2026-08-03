@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=4">
+    <link rel="stylesheet" href="styles.css?v=5">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -48,31 +48,32 @@
 <div class="app-container" id="appContainer" style="display:none;">
     <header class="topbar" id="sidebar">
         <div class="hazard-stripe" aria-hidden="true"></div>
-        <div class="sidebar-header">
-            <div class="sidebar-brand">
-                <div class="brand-icon">EM</div>
-                <div>
-                    <h2>Informes de Emergencia</h2>
-                    <span class="brand-sub">Ingeniería Municipal</span>
+        <div class="topbar-main">
+            <div class="sidebar-header">
+                <div class="sidebar-brand">
+                    <div class="brand-icon">EM</div>
+                    <div>
+                        <h2>Informes de Emergencia</h2>
+                        <span class="brand-sub">Ingeniería Municipal</span>
+                    </div>
                 </div>
+                <button type="button" class="btn btn-primary btn-new" id="btnNewInforme" data-role="admin,creador">+ Nuevo Caso</button>
             </div>
-            <button type="button" class="btn btn-primary btn-new" id="btnNewInforme" data-role="admin,creador">+ Nuevo Caso</button>
+            <div class="sidebar-user" id="sidebarUser">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <div>
+                        <div class="user-name" id="userName">Usuario</div>
+                        <div class="user-role" id="userRole">Admin</div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-ghost btn-sm" id="btnLogout" title="Cerrar sesión">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><rect x="3" y="5" width="15" height="14" rx="2.5"/><path d="M13 9.5 16.5 12 13 14.5"/><path d="M16.5 12H9"/></svg>
+                </button>
+            </div>
         </div>
 
-        <div class="sidebar-user" id="sidebarUser">
-            <div class="user-info">
-                <div class="user-avatar" id="userAvatar">A</div>
-                <div>
-                    <div class="user-name" id="userName">Usuario</div>
-                    <div class="user-role" id="userRole">Admin</div>
-                </div>
-            </div>
-            <button type="button" class="btn btn-ghost btn-sm" id="btnLogout" title="Cerrar sesión">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><rect x="3" y="5" width="15" height="14" rx="2.5"/><path d="M13 9.5 16.5 12 13 14.5"/><path d="M16.5 12H9"/></svg>
-            </button>
-        </div>
-
-        <nav class="sidebar-controls" aria-label="Navegación principal">
+        <div class="topbar-secondary">
             <button type="button" class="btn btn-secondary" id="btnControlDoc" title="Control documental de informes">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><rect x="4.5" y="4" width="12" height="17" rx="2.5"/><path d="M8.5 4V2.5h6V4"/><path d="M8.5 10h6"/><path d="M8.5 14h6"/><circle cx="18.5" cy="8" r="1.1" fill="var(--green)" stroke="none"/><circle cx="18.5" cy="12" r="1.1" fill="var(--amber)" stroke="none"/><circle cx="18.5" cy="16" r="1.1" fill="var(--red)" stroke="none"/></svg>
                 Control Documental
@@ -87,24 +88,25 @@
                 <button type="button" class="filter-btn" data-filter="amarillo"><span class="filter-dot amarillo"></span>Amarillo</button>
                 <button type="button" class="filter-btn" data-filter="rojo"><span class="filter-dot rojo"></span>Rojo</button>
             </div>
-        </nav>
+            <div class="sidebar-stats" id="sidebarStats"></div>
+        </div>
 
-        <div class="sidebar-stats" id="sidebarStats"></div>
-
-        <div class="sidebar-footer">
-            <button type="button" class="btn btn-ghost btn-sm" id="btnExportData" title="Exportar datos" data-role="admin">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M4 15.5v3a2.5 2.5 0 0 0 2.5 2.5h11a2.5 2.5 0 0 0 2.5-2.5v-3"/><path d="M12 4.5v10"/><path d="M8.5 9 12 5.5 15.5 9"/></svg>
-                Exportar
-            </button>
-            <button type="button" class="btn btn-ghost btn-sm" id="btnImportData" title="Importar datos" data-role="admin">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M4 15.5v3a2.5 2.5 0 0 0 2.5 2.5h11a2.5 2.5 0 0 0 2.5-2.5v-3"/><path d="M12 14.5v-10"/><path d="M8.5 9 12 12.5 15.5 9"/></svg>
-                Importar
-            </button>
-            <input type="file" id="importFileInput" accept=".json" style="display:none;">
-            <button type="button" class="btn btn-ghost btn-sm" id="btnManageUsers" title="Gestionar usuarios" data-role="admin">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><path d="M16 5a3.5 3.5 0 0 1 0 6"/><path d="M17.5 13.7c2.2.8 3.8 3 3.8 5.6"/></svg>
-                Usuarios
-            </button>
+        <div class="topbar-tertiary">
+            <div class="sidebar-footer">
+                <input type="file" id="importFileInput" accept=".json" style="display:none;">
+                <button type="button" class="btn btn-ghost btn-sm" id="btnExportData" title="Exportar datos" data-role="admin">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M4 15.5v3a2.5 2.5 0 0 0 2.5 2.5h11a2.5 2.5 0 0 0 2.5-2.5v-3"/><path d="M12 4.5v10"/><path d="M8.5 9 12 5.5 15.5 9"/></svg>
+                    Exportar
+                </button>
+                <button type="button" class="btn btn-ghost btn-sm" id="btnImportData" title="Importar datos" data-role="admin">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M4 15.5v3a2.5 2.5 0 0 0 2.5 2.5h11a2.5 2.5 0 0 0 2.5-2.5v-3"/><path d="M12 14.5v-10"/><path d="M8.5 9 12 12.5 15.5 9"/></svg>
+                    Importar
+                </button>
+                <button type="button" class="btn btn-ghost btn-sm" id="btnManageUsers" title="Gestionar usuarios" data-role="admin">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><path d="M16 5a3.5 3.5 0 0 1 0 6"/><path d="M17.5 13.7c2.2.8 3.8 3 3.8 5.6"/></svg>
+                    Usuarios
+                </button>
+            </div>
         </div>
     </header>
 
@@ -453,7 +455,7 @@
 
 <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-<script src="js/datos-maestros.js?v=4"></script>
-<script src="app.js?v=4"></script>
+<script src="js/datos-maestros.js?v=5"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
