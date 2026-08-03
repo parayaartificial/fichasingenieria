@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=3">
+    <link rel="stylesheet" href="styles.css?v=4">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -28,6 +28,7 @@
         </div>
         <h1>Informes de Emergencia</h1>
         <p class="login-subtitle">Ingeniería Municipal · Concepción</p>
+        <div class="login-semaforo" aria-hidden="true"><span class="verde"></span><span class="amarillo"></span><span class="rojo"></span></div>
         <form id="loginForm" autocomplete="off">
             <div class="form-group">
                 <label for="loginUser">Usuario</label>
@@ -67,17 +68,17 @@
                 </div>
             </div>
             <button type="button" class="btn btn-ghost btn-sm" id="btnLogout" title="Cerrar sesión">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><rect x="3" y="5" width="15" height="14" rx="2.5"/><path d="M13 9.5 16.5 12 13 14.5"/><path d="M16.5 12H9"/></svg>
             </button>
         </div>
 
         <nav class="sidebar-controls" aria-label="Navegación principal">
             <button type="button" class="btn btn-secondary" id="btnControlDoc" title="Control documental de informes">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><rect x="4.5" y="4" width="12" height="17" rx="2.5"/><path d="M8.5 4V2.5h6V4"/><path d="M8.5 10h6"/><path d="M8.5 14h6"/><circle cx="18.5" cy="8" r="1.1" fill="var(--green)" stroke="none"/><circle cx="18.5" cy="12" r="1.1" fill="var(--amber)" stroke="none"/><circle cx="18.5" cy="16" r="1.1" fill="var(--red)" stroke="none"/></svg>
                 Control Documental
             </button>
             <div class="search-box">
-                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>
                 <input type="text" id="searchInput" placeholder="Buscar por sector, calle, nombre..." aria-label="Buscar informes">
             </div>
             <div class="filter-buttons" role="group" aria-label="Filtrar por semáforo">
@@ -92,16 +93,16 @@
 
         <div class="sidebar-footer">
             <button type="button" class="btn btn-ghost btn-sm" id="btnExportData" title="Exportar datos" data-role="admin">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M4 15.5v3a2.5 2.5 0 0 0 2.5 2.5h11a2.5 2.5 0 0 0 2.5-2.5v-3"/><path d="M12 4.5v10"/><path d="M8.5 9 12 5.5 15.5 9"/></svg>
                 Exportar
             </button>
             <button type="button" class="btn btn-ghost btn-sm" id="btnImportData" title="Importar datos" data-role="admin">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M4 15.5v3a2.5 2.5 0 0 0 2.5 2.5h11a2.5 2.5 0 0 0 2.5-2.5v-3"/><path d="M12 14.5v-10"/><path d="M8.5 9 12 12.5 15.5 9"/></svg>
                 Importar
             </button>
             <input type="file" id="importFileInput" accept=".json" style="display:none;">
             <button type="button" class="btn btn-ghost btn-sm" id="btnManageUsers" title="Gestionar usuarios" data-role="admin">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><path d="M16 5a3.5 3.5 0 0 1 0 6"/><path d="M17.5 13.7c2.2.8 3.8 3 3.8 5.6"/></svg>
                 Usuarios
             </button>
         </div>
@@ -117,7 +118,7 @@
         <main class="main-panel" id="mainPanel">
         <div class="mobile-header" id="mobileHeader">
             <button type="button" class="btn btn-ghost" id="btnToggleSidebar" aria-label="Abrir menú">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" width="24" height="24" aria-hidden="true"><line x1="4" y1="6.5" x2="20" y2="6.5"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17.5" x2="14" y2="17.5"/></svg>
             </button>
             <span class="mobile-title">Informes de Emergencia</span>
         </div>
@@ -452,7 +453,7 @@
 
 <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-<script src="js/datos-maestros.js?v=3"></script>
-<script src="app.js?v=3"></script>
+<script src="js/datos-maestros.js?v=4"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

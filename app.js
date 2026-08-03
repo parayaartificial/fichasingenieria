@@ -316,7 +316,18 @@ function getNextCodigoSeguimiento() {
 }
 
 // ============ RENDER SIDEBAR ============
+function skeletonFichas() {
+    return '<div class="ficha-card skeleton-card" aria-hidden="true">' +
+        '<div class="semaforo-post"><span></span><span></span><span></span></div>' +
+        '<div class="ficha-card-content">' +
+            '<div class="skeleton-line skeleton-w60"></div>' +
+            '<div class="skeleton-line skeleton-w30"></div>' +
+        '</div>' +
+    '</div>'.repeat(3);
+}
+
 function renderFichasList() {
+    fichasList.innerHTML = skeletonFichas();
     loadFichas().then(fichas => {
         fichasList.innerHTML = '';
 
@@ -389,6 +400,14 @@ function renderSidebarStats(fichas) {
 
 // ============ DASHBOARD ============
 function renderDashboard() {
+    dashboardContainer.innerHTML =
+        '<div class="dash-header">' +
+            '<h1>Panel de Control</h1>' +
+            '<p>Cargando resumen...</p>' +
+        '</div>' +
+        '<div class="dash-kpi-grid" aria-hidden="true">' +
+            '<div class="dash-kpi skeleton-card"><div class="skeleton-line skeleton-w50"></div><div class="skeleton-line skeleton-w70" style="height:26px;"></div></div>'.repeat(4) +
+        '</div>';
     loadFichas().then(fichas => {
         const total = fichas.length;
         const counts = { verde: 0, amarillo: 0, rojo: 0 };
@@ -400,15 +419,20 @@ function renderDashboard() {
         const amarilloPct = total ? Math.round(counts.amarillo / total * 100) : 0;
         const rojoPct = total ? Math.round(counts.rojo / total * 100) : 0;
 
+        const iconTotal = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg>';
+        const iconVerde = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>';
+        const iconAmarillo = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3L2.5 20h19z"/><path d="M12 9.5v4.5"/><path d="M12 17.2v.1"/></svg>';
+        const iconRojo = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5l5 5"/><path d="M14.5 9.5l-5 5"/></svg>';
+
         let recentHtml = '';
         recent.forEach(f => {
             const fecha = f.fechaVisita ? new Date(f.fechaVisita).toLocaleDateString('es-CL') : '';
             recentHtml +=
                 '<div class="dash-recent-item" data-id="' + f.id + '">' +
                     '<span class="ficha-card-dot ' + (f.semaforo || '') + '"></span>' +
-                    '<div style="flex:1;">' +
-                        '<div style="font-size:0.82rem;font-weight:600;color:var(--gray-700);">' + escapeHtml(f.sector || 'Sin sector') + '</div>' +
-                        '<div style="font-size:0.7rem;color:var(--gray-400);">N&ordm; ' + (f.registroNum || '-') + (fecha ? ' &middot; ' + fecha : '') + '</div>' +
+                    '<div class="dash-recent-item-main">' +
+                        '<div class="dash-recent-item-title">' + escapeHtml(f.sector || 'Sin sector') + '</div>' +
+                        '<div class="dash-recent-item-meta">N&ordm; ' + (f.registroNum || '-') + (fecha ? ' &middot; ' + fecha : '') + '</div>' +
                     '</div>' +
                 '</div>';
         });
@@ -420,6 +444,13 @@ function renderDashboard() {
         const amarilloOffset = -verdeDash;
         const rojoOffset = -(verdeDash + amarilloDash);
 
+        const donutSvg =
+            '<svg width="120" height="120" viewBox="0 0 120 120">' +
+                (verdePct > 0 ? '<circle cx="60" cy="60" r="45" fill="none" style="stroke:var(--green);" stroke-width="12" stroke-dasharray="' + verdeDash + ' ' + (circumference - verdeDash) + '" stroke-dashoffset="0"/>' : '') +
+                (amarilloPct > 0 ? '<circle cx="60" cy="60" r="45" fill="none" style="stroke:var(--amber);" stroke-width="12" stroke-dasharray="' + amarilloDash + ' ' + (circumference - amarilloDash) + '" stroke-dashoffset="' + amarilloOffset + '"/>' : '') +
+                (rojoPct > 0 ? '<circle cx="60" cy="60" r="45" fill="none" style="stroke:var(--red);" stroke-width="12" stroke-dasharray="' + rojoDash + ' ' + (circumference - rojoDash) + '" stroke-dashoffset="' + rojoOffset + '"/>' : '') +
+            '</svg>';
+
         dashboardContainer.innerHTML =
             '<div class="dash-header">' +
                 '<h1>Panel de Control</h1>' +
@@ -428,50 +459,46 @@ function renderDashboard() {
 
             '<div class="dash-kpi-grid">' +
                 '<div class="dash-kpi">' +
-                    '<div class="dash-kpi-icon total">&#128203;</div>' +
+                    '<div class="dash-kpi-icon total">' + iconTotal + '</div>' +
                     '<div class="dash-kpi-value">' + total + '</div>' +
                     '<div class="dash-kpi-label">Total Informes</div>' +
                     '<div class="dash-kpi-bar total"></div>' +
                 '</div>' +
                 '<div class="dash-kpi">' +
-                    '<div class="dash-kpi-icon verde">&#9989;</div>' +
+                    '<div class="dash-kpi-icon verde">' + iconVerde + '</div>' +
                     '<div class="dash-kpi-value">' + counts.verde + '</div>' +
-                    '<div class="dash-kpi-label">Verde - Habitable</div>' +
+                    '<div class="dash-kpi-label">Verde — Habitable</div>' +
                     '<div class="dash-kpi-bar verde"></div>' +
                 '</div>' +
                 '<div class="dash-kpi">' +
-                    '<div class="dash-kpi-icon amarillo">&#9888;</div>' +
+                    '<div class="dash-kpi-icon amarillo">' + iconAmarillo + '</div>' +
                     '<div class="dash-kpi-value">' + counts.amarillo + '</div>' +
-                    '<div class="dash-kpi-label">Amarillo - Mitigacion</div>' +
+                    '<div class="dash-kpi-label">Amarillo — Mitigación</div>' +
                     '<div class="dash-kpi-bar amarillo"></div>' +
                 '</div>' +
                 '<div class="dash-kpi">' +
-                    '<div class="dash-kpi-icon rojo">&#10060;</div>' +
+                    '<div class="dash-kpi-icon rojo">' + iconRojo + '</div>' +
                     '<div class="dash-kpi-value">' + counts.rojo + '</div>' +
-                    '<div class="dash-kpi-label">Rojo - Inhabitable</div>' +
+                    '<div class="dash-kpi-label">Rojo — Inhabitable</div>' +
                     '<div class="dash-kpi-bar rojo"></div>' +
                 '</div>' +
             '</div>' +
 
             (total > 0 ? (
-                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">' +
+                '<div class="dash-cols">' +
 
                 '<div class="dash-section">' +
                     '<div class="dash-section-header"><span class="dash-section-title">Distribución por Semáforo</span></div>' +
                     '<div class="dash-section-body">' +
                         '<div class="dash-donut-container">' +
                             '<div class="dash-donut">' +
-                                '<svg width="120" height="120" viewBox="0 0 120 120">' +
-                                    (verdePct > 0 ? '<circle cx="60" cy="60" r="45" fill="none" stroke="#38a169" stroke-width="12" stroke-dasharray="' + verdeDash + ' ' + (circumference - verdeDash) + '" stroke-dashoffset="0"/>' : '') +
-                                    (amarilloPct > 0 ? '<circle cx="60" cy="60" r="45" fill="none" stroke="#d69e2e" stroke-width="12" stroke-dasharray="' + amarilloDash + ' ' + (circumference - amarilloDash) + '" stroke-dashoffset="' + amarilloOffset + '"/>' : '') +
-                                    (rojoPct > 0 ? '<circle cx="60" cy="60" r="45" fill="none" stroke="#e53e3e" stroke-width="12" stroke-dasharray="' + rojoDash + ' ' + (circumference - rojoDash) + '" stroke-dashoffset="' + rojoOffset + '"/>' : '') +
-                                '</svg>' +
+                                donutSvg +
                                 '<div class="dash-donut-center"><div class="val">' + total + '</div><div class="lbl">Total</div></div>' +
                             '</div>' +
                             '<div class="dash-legend">' +
-                                '<div class="dash-legend-item"><span class="dash-legend-dot" style="background:var(--verde);"></span><span class="dash-legend-label">Verde</span><span class="dash-legend-value">' + counts.verde + ' (' + verdePct + '%)</span></div>' +
-                                '<div class="dash-legend-item"><span class="dash-legend-dot" style="background:var(--amarillo);"></span><span class="dash-legend-label">Amarillo</span><span class="dash-legend-value">' + counts.amarillo + ' (' + amarilloPct + '%)</span></div>' +
-                                '<div class="dash-legend-item"><span class="dash-legend-dot" style="background:var(--rojo);"></span><span class="dash-legend-label">Rojo</span><span class="dash-legend-value">' + counts.rojo + ' (' + rojoPct + '%)</span></div>' +
+                                '<div class="dash-legend-item"><span class="dash-legend-dot verde"></span><span class="dash-legend-label">Verde</span><span class="dash-legend-value">' + counts.verde + ' (' + verdePct + '%)</span></div>' +
+                                '<div class="dash-legend-item"><span class="dash-legend-dot amarillo"></span><span class="dash-legend-label">Amarillo</span><span class="dash-legend-value">' + counts.amarillo + ' (' + amarilloPct + '%)</span></div>' +
+                                '<div class="dash-legend-item"><span class="dash-legend-dot rojo"></span><span class="dash-legend-label">Rojo</span><span class="dash-legend-value">' + counts.rojo + ' (' + rojoPct + '%)</span></div>' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
@@ -479,18 +506,25 @@ function renderDashboard() {
 
                 '<div class="dash-section">' +
                     '<div class="dash-section-header"><span class="dash-section-title">Últimos Informes</span></div>' +
-                    '<div class="dash-section-body" style="padding:8px 20px;">' +
+                    '<div class="dash-section-body dash-recent-body">' +
                         (recentHtml || '<p class="empty-msg">Sin informes recientes</p>') +
                     '</div>' +
                 '</div>' +
 
                 '</div>'
             ) : (
-                '<div class="dash-section"><div class="dash-section-body" style="text-align:center;padding:40px;">' +
-                    '<div style="font-size:2rem;margin-bottom:8px;">&#128203;</div>' +
-                    '<h3 style="color:var(--gray-600);margin-bottom:4px;">Sin informes registrados</h3>' +
-                    '<p style="color:var(--gray-400);font-size:0.85rem;">Haga clic en "+ Nuevo Caso" para comenzar</p>' +
-                '</div></div>'
+                '<div class="dash-section">' +
+                    '<div class="dash-getting-started">' +
+                        '<div class="dash-empty-hazard" aria-hidden="true"><span></span><span></span><span></span></div>' +
+                        '<h3>Sin informes registrados</h3>' +
+                        '<p>Registre el primer caso para comenzar a usar la plataforma. La línea de Control Documental se crea automáticamente.</p>' +
+                        '<ol class="dash-steps">' +
+                            '<li>Haga clic en <strong>+ Nuevo Caso</strong></li>' +
+                            '<li>Complete los datos de la emergencia</li>' +
+                            '<li>Complete el control documental para poder generar el informe</li>' +
+                        '</ol>' +
+                    '</div>' +
+                '</div>'
             ));
 
         const recentItems = dashboardContainer.querySelectorAll('.dash-recent-item');

@@ -236,6 +236,21 @@ h1, h2, h3, h4 {
 
 .login-btn { width: 100%; padding: 13px; font-size: 0.9rem; margin-top: 4px; }
 
+.login-semaforo {
+    display: flex;
+    gap: 7px;
+    justify-content: center;
+    margin: -14px 0 22px;
+}
+.login-semaforo span {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+}
+.login-semaforo span.verde { background: var(--green); }
+.login-semaforo span.amarillo { background: var(--amber); }
+.login-semaforo span.rojo { background: var(--red); }
+
 /* ============ BOTONES ============ */
 .btn {
     display: inline-flex;
@@ -557,6 +572,28 @@ h1, h2, h3, h4 {
 
 .ficha-card-content { flex: 1; min-width: 0; }
 
+/* ============ SKELETON LOADING ============ */
+@keyframes shimmer {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+
+.skeleton-card { cursor: default; }
+.skeleton-card:hover { border-color: var(--line); transform: none; box-shadow: var(--shadow-sm); }
+
+.skeleton-line {
+    height: 12px;
+    border-radius: 6px;
+    margin: 6px 0;
+    background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.4s infinite linear;
+}
+.skeleton-w30 { width: 30%; }
+.skeleton-w50 { width: 50%; }
+.skeleton-w60 { width: 60%; }
+.skeleton-w70 { width: 70%; }
+
 .ficha-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
 
 .ficha-card-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
@@ -714,6 +751,85 @@ h1, h2, h3, h4 {
 
 .dash-recent-item-title { font-size: 0.82rem; font-weight: 600; color: var(--gray-700); }
 .dash-recent-item-meta { font-family: var(--font-mono); font-size: 0.66rem; color: var(--gray-400); font-variant-numeric: tabular-nums; }
+
+.dash-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.dash-kpi-icon svg { width: 22px; height: 22px; }
+
+.dash-recent-item-main { flex: 1; min-width: 0; }
+.dash-recent-body { padding: 8px 20px; }
+
+.dash-legend-dot.verde { background: var(--green); }
+.dash-legend-dot.amarillo { background: var(--amber); }
+.dash-legend-dot.rojo { background: var(--red); }
+
+.dash-getting-started {
+    padding: 44px 32px;
+    text-align: center;
+    max-width: 460px;
+    margin: 0 auto;
+}
+.dash-getting-started h3 { font-size: 1.15rem; font-weight: 800; color: var(--ink); margin-bottom: 8px; }
+.dash-getting-started p { font-size: 0.85rem; color: var(--gray-500); line-height: 1.6; margin-bottom: 20px; }
+
+.dash-empty-hazard {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 0 auto 18px;
+    width: max-content;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+.dash-empty-hazard span {
+    width: 14px;
+    height: 42px;
+    border-radius: 4px;
+}
+.dash-empty-hazard span:nth-child(1) { background: var(--green); }
+.dash-empty-hazard span:nth-child(2) { background: var(--amber); }
+.dash-empty-hazard span:nth-child(3) { background: var(--red); }
+
+.dash-steps {
+    list-style: none;
+    counter-reset: dashstep;
+    text-align: left;
+    margin: 0 auto;
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.dash-steps li {
+    counter-increment: dashstep;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.82rem;
+    color: var(--gray-600);
+    line-height: 1.5;
+}
+.dash-steps li::before {
+    content: counter(dashstep);
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.72rem;
+    color: var(--navy);
+    background: var(--navy-soft);
+    border: 1px solid rgba(11, 60, 93, 0.2);
+    border-radius: 6px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.dash-steps strong { color: var(--navy); }
 
 /* ============ FORMULARIOS ============ */
 .form-container, .view-container, .control-container {
