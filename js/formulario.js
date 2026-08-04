@@ -39,7 +39,6 @@ async function showForm(ficha, esNuevoCaso) {
             rut: '',
             visitaCon: '',
             reporteConcluyente: '',
-            conclusion: '',
             descripcion: '',
             codigoSeguimiento: cod,
             sectorial: '',
@@ -89,7 +88,6 @@ function fillForm(f) {
     $('#fono').value = f.fono || '';
     $('#rut').value = f.rut || '';
     $('#visitaCon').value = f.visitaCon || '';
-    $('#conclusion').value = f.conclusion || '';
     $('#descripcion').value = f.descripcion || '';
     $('#codigoSeguimiento').value = f.codigoSeguimiento || '';
     $('#sectorialSelect').value = f.sectorial || '';
@@ -134,7 +132,6 @@ function getFormData() {
         fono: $('#fono').value.trim(),
         rut: $('#rut').value.trim(),
         visitaCon: $('#visitaCon').value.trim(),
-        conclusion: $('#conclusion').value.trim(),
         descripcion: $('#descripcion').value.trim(),
         codigoSeguimiento: $('#codigoSeguimiento').value,
         sectorial: s,

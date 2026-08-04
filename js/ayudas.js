@@ -50,10 +50,6 @@ const CAMPO_AYUDAS = {
         ayuda: 'Resultado final de la visita. El sistema lo sugiere según el semáforo; verifique que sea correcto.',
         ejemplo: 'Puede cambiarlo manualmente si corresponde.'
     },
-    conclusion: {
-        ayuda: 'Resumen breve del resultado de la visita y del estado del lugar.',
-        ejemplo: 'Ej: La vivienda presenta daños menores, se recomienda monitoreo.'
-    },
     codigoSeguimiento: {
         ayuda: 'Código de seguimiento asignado automáticamente. No lo modifique.'
     },

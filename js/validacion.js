@@ -98,7 +98,6 @@ const SECCION_POR_CAMPO = {
     rut: 'Datos Personales',
     visitaCon: 'Datos Personales',
     reporteConcluyente: 'Reporte Concluyente',
-    conclusion: 'Reporte Concluyente',
     sectorialSelect: 'Control Documental',
     sectorial: 'Control Documental',
     sectorialPersonaSelect: 'Control Documental',
