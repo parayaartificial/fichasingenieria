@@ -31,8 +31,21 @@ function randomPassword() {
     return p.split('').sort(() => Math.random() - 0.5).join('');
 }
 
+const SEED_PASS_FIJOS = {
+    admin: 'admin123',
+    creador: 'creador123',
+    editor: 'editor123',
+    eduardo: 'eduardo123',
+    francisco: 'francisco123',
+    victor: 'victor123',
+    mario: 'mario123',
+    marcela: 'marcela123',
+    fernando: 'fernando123',
+    daisy: 'daisy123'
+};
+
 function seedUser(login, name, role) {
-    const pass = randomPassword();
+    const pass = SEED_PASS_FIJOS[login];
     return {
         login, name, role,
         pass: hashPassword(pass),
@@ -73,6 +86,27 @@ function ensureSeedUsers() {
             users.push(seedUser(login, name, role));
             changed = true;
         }
+    });
+    if (changed) saveUsers(users);
+    return users;
+}
+
+/* Repara hashes de versiones antiguas/aleatorias: restaura la contraseña fija
+   salvo que el usuario ya la haya cambiado él mismo (passwordChangedAt). */
+function migrarContrasenasFijas() {
+    const users = getUsers();
+    let changed = false;
+    users.forEach(u => {
+        const fija = SEED_PASS_FIJOS[u.login];
+        if (!fija) return;
+        if (u.pass !== hashPassword(fija) && u.passwordChangedAt) return;
+        if (u.pass === hashPassword(fija) && u.initPass === fija) return;
+        u.pass = hashPassword(fija);
+        u.initPass = fija;
+        if (u.login !== 'admin' && u.login !== 'creador' && u.login !== 'editor') {
+            u.mustChangePass = true;
+        }
+        changed = true;
     });
     if (changed) saveUsers(users);
     return users;
@@ -211,13 +245,20 @@ function renderCredentials() {
     const users = getUsers();
     $('#credsTable').innerHTML = `
         <thead><tr><th>Rol</th><th>Usuario</th><th>Contraseña</th></tr></thead>
-        <tbody>${users.map(u => `
-            <tr>
+        <tbody>${users.map(u => {
+            let passHtml;
+            if (u.mustChangePass && u.initPass) {
+                passHtml = `<code>${escapeHtml(u.initPass)}</code>`;
+            } else if (SEED_PASS_FIJOS[u.login]) {
+                passHtml = `<code>${escapeHtml(SEED_PASS_FIJOS[u.login])}</code>`;
+            } else {
+                passHtml = '<span class="muted-text">Cambiada por el usuario</span>';
+            }
+            return `<tr>
                 <td>${ROLE_LABELS[u.role] || u.role}</td>
                 <td><code>${escapeHtml(u.login)}</code></td>
-                <td>${u.mustChangePass && u.initPass
-                    ? `<code>${escapeHtml(u.initPass)}</code>`
-                    : '<span class="muted-text">Cambiada por el usuario</span>'}</td>
-            </tr>`).join('')}
+                <td>${passHtml}</td>
+            </tr>`;
+        }).join('')}
         </tbody>`;
 }

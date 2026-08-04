@@ -228,6 +228,7 @@ async function initSeccion(n) {
 function init() {
     initDefaultUsers();
     ensureSeedUsers();
+    migrarContrasenasFijas();
     initDatalists();
     initSelectsFormulario();
     initForm();
