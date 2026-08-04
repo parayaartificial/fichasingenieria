@@ -21,25 +21,100 @@ function saveUsers(users) {
     localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
+function randomPassword() {
+    const mayus = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+    const minus = 'abcdefghjkmnpqrstuvwxyz';
+    const nums = '23456789';
+    const chars = mayus + minus + nums;
+    let p = mayus[Math.floor(Math.random() * mayus.length)] + nums[Math.floor(Math.random() * nums.length)];
+    for (let i = 0; i < 8; i++) p += chars[Math.floor(Math.random() * chars.length)];
+    return p.split('').sort(() => Math.random() - 0.5).join('');
+}
+
+function seedUser(login, name, role) {
+    const pass = randomPassword();
+    return {
+        login, name, role,
+        pass: hashPassword(pass),
+        initPass: pass,
+        mustChangePass: true,
+        seed: true,
+        createdAt: Date.now()
+    };
+}
+
+const SEED_NUEVOS_USUARIOS = [
+    ['eduardo', 'Eduardo', 'creador'],
+    ['francisco', 'Francisco', 'creador'],
+    ['victor', 'Victor', 'creador'],
+    ['mario', 'Mario', 'creador'],
+    ['marcela', 'Marcela', 'admin'],
+    ['fernando', 'Fernando', 'admin'],
+    ['daisy', 'Daisy', 'admin']
+];
+
 function initDefaultUsers() {
     const users = getUsers();
-    if (users.length) return users;
+    if (users.length) return ensureSeedUsers();
     const def = [
-        { login: 'admin', pass: hashPassword('admin123'), name: 'Administrador', role: 'admin' },
-        { login: 'creador', pass: hashPassword('creador123'), name: 'Creador', role: 'creador' },
-        { login: 'editor', pass: hashPassword('editor123'), name: 'Editor', role: 'editor' }
+        { login: 'admin', pass: hashPassword('admin123'), name: 'Administrador', role: 'admin', seed: true, createdAt: Date.now() },
+        { login: 'creador', pass: hashPassword('creador123'), name: 'Creador', role: 'creador', seed: true, createdAt: Date.now() },
+        { login: 'editor', pass: hashPassword('editor123'), name: 'Editor', role: 'editor', seed: true, createdAt: Date.now() }
     ];
     saveUsers(def);
-    return def;
+    return ensureSeedUsers();
+}
+
+function ensureSeedUsers() {
+    const users = getUsers();
+    let changed = false;
+    SEED_NUEVOS_USUARIOS.forEach(([login, name, role]) => {
+        if (!users.some(u => u.login.toLowerCase() === login)) {
+            users.push(seedUser(login, name, role));
+            changed = true;
+        }
+    });
+    if (changed) saveUsers(users);
+    return users;
 }
 
 function loginUser(login, pass) {
     const users = getUsers();
     const u = users.find(x => x.login.toLowerCase() === login.trim().toLowerCase());
     if (!u || u.pass !== hashPassword(pass)) return false;
+    u.lastLogin = Date.now();
+    saveUsers(users);
+    if (u.mustChangePass) {
+        App.pendingChangeUser = { login: u.login, name: u.name };
+        return true;
+    }
     App.currentUser = { login: u.login, name: u.name, role: u.role };
     localStorage.setItem(SESSION_KEY, JSON.stringify(App.currentUser));
     return true;
+}
+
+function changePassword(login, newPass) {
+    const users = getUsers();
+    const u = users.find(x => x.login.toLowerCase() === login.toLowerCase());
+    if (!u) return false;
+    u.pass = hashPassword(newPass);
+    u.mustChangePass = false;
+    u.initPass = undefined;
+    u.passwordChangedAt = Date.now();
+    saveUsers(users);
+    return true;
+}
+
+function resetUserPassword(login) {
+    const users = getUsers();
+    const u = users.find(x => x.login.toLowerCase() === login.toLowerCase());
+    if (!u) return null;
+    const pass = randomPassword();
+    u.pass = hashPassword(pass);
+    u.initPass = pass;
+    u.mustChangePass = true;
+    saveUsers(users);
+    return pass;
 }
 
 function logoutUser() {
@@ -87,7 +162,7 @@ function showApp() {
     applyRoleRestrictions();
 }
 
-/* ---------- Gestión de usuarios ---------- */
+/* ---------- Gestión de usuarios (solo admin) ---------- */
 function renderUsersList() {
     const cont = $('#usersList');
     const users = getUsers();
@@ -95,9 +170,17 @@ function renderUsersList() {
         <div class="user-row">
             <div class="user-row-info">
                 <strong>${escapeHtml(u.name)}</strong>
-                <span class="muted-text">${escapeHtml(u.login)} · ${ROLE_LABELS[u.role] || u.role}</span>
+                <span class="muted-text">@${escapeHtml(u.login)} · ${ROLE_LABELS[u.role] || u.role}</span>
+                <span class="user-row-state ${u.mustChangePass ? 'is-pending' : 'is-ok'}">
+                    ${u.mustChangePass ? 'Contraseña temporal · sin cambiar' : 'Contraseña activa'}
+                    ${u.lastLogin ? ` · Último ingreso: ${fechasHora(u.lastLogin)}` : ''}
+                </span>
+                <span class="user-row-temp" data-temp="${escapeHtml(u.login)}" hidden></span>
             </div>
-            ${u.login !== 'admin' ? `<button class="btn btn-ghost btn-sm" data-del-user="${escapeHtml(u.login)}">Eliminar</button>` : ''}
+            <div class="user-row-actions">
+                <button class="btn btn-ghost btn-sm" data-reset-pass="${escapeHtml(u.login)}">Resetear contraseña</button>
+                ${!u.seed && u.login !== 'admin' ? `<button class="btn btn-ghost btn-sm" data-del-user="${escapeHtml(u.login)}">Eliminar</button>` : ''}
+            </div>
         </div>`).join('');
     $$('[data-del-user]').forEach(b => {
         b.addEventListener('click', () => {
@@ -107,6 +190,19 @@ function renderUsersList() {
             renderUsersList();
             renderCredentials();
             showToast('Usuario eliminado');
+        });
+    });
+    $$('[data-reset-pass]').forEach(b => {
+        b.addEventListener('click', () => {
+            const pass = resetUserPassword(b.dataset.resetPass);
+            if (!pass) return;
+            const tempEl = cont.querySelector(`[data-temp="${b.dataset.resetPass}"]`);
+            if (tempEl) {
+                tempEl.hidden = false;
+                tempEl.textContent = 'Contraseña temporal: ' + pass + ' (se pedirá cambiarla en el próximo ingreso)';
+            }
+            renderCredentials();
+            showToast('Contraseña restablecida');
         });
     });
 }
@@ -119,7 +215,9 @@ function renderCredentials() {
             <tr>
                 <td>${ROLE_LABELS[u.role] || u.role}</td>
                 <td><code>${escapeHtml(u.login)}</code></td>
-                <td><code>${escapeHtml(u.login)}123</code></td>
+                <td>${u.mustChangePass && u.initPass
+                    ? `<code>${escapeHtml(u.initPass)}</code>`
+                    : '<span class="muted-text">Cambiada por el usuario</span>'}</td>
             </tr>`).join('')}
         </tbody>`;
 }

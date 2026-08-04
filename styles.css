@@ -849,8 +849,21 @@ textarea { resize: vertical; }
     padding: 10px 12px;
     background: var(--surface-2);
     border-radius: var(--r-md);
+    flex-wrap: wrap;
 }
-.user-row-info { display: flex; flex-direction: column; }
+.user-row-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.user-row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.user-row-state { font-size: .78rem; font-weight: 600; }
+.user-row-state.is-ok { color: #1e7a46; }
+.user-row-state.is-pending { color: var(--amarillo); }
+.user-row-temp {
+    font-family: var(--font-mono);
+    font-size: .8rem;
+    color: var(--navy-2);
+    background: rgba(43, 79, 124, .08);
+    padding: 4px 8px;
+    border-radius: var(--r-sm);
+}
 
 .creds-table { width: 100%; border-collapse: collapse; font-size: .86rem; }
 .creds-table th { text-align: left; padding: 8px; border-bottom: 2px solid var(--line-strong); font-family: var(--font-display); font-size: .76rem; text-transform: uppercase; letter-spacing: .05em; }

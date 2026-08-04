@@ -34,6 +34,25 @@
     </div>
 </div>
 
+<!-- ============ CAMBIO DE CONTRASEÑA (primer ingreso) ============ -->
+<div id="changePassScreen" class="login-screen" hidden>
+    <div class="login-card">
+        <div class="login-brand">
+            <img src="Logo.png" alt="Logo municipal" class="login-logo">
+            <h1>Cambio de contraseña</h1>
+            <p id="changePassUser">Bienvenido</p>
+        </div>
+        <form id="changePassForm" novalidate>
+            <label for="changePassNew">Nueva contraseña</label>
+            <input type="password" id="changePassNew" autocomplete="new-password" minlength="6" required>
+            <label for="changePassConfirm">Confirmar contraseña</label>
+            <input type="password" id="changePassConfirm" autocomplete="new-password" minlength="6" required>
+            <p id="changePassError" class="form-error" hidden></p>
+            <button type="submit" class="btn btn-primary btn-block">Guardar contraseña</button>
+        </form>
+    </div>
+</div>
+
 <!-- ============ APP ============ -->
 <div id="app" hidden>
     <header class="topbar">
@@ -421,7 +440,7 @@
                     <div class="grid-2">
                         <div class="field"><label for="newUserName">Nombre</label><input type="text" id="newUserName"></div>
                         <div class="field"><label for="newUserLogin">Usuario</label><input type="text" id="newUserLogin"></div>
-                        <div class="field"><label for="newUserPass">Contraseña</label><input type="text" id="newUserPass"></div>
+                        <div class="field"><label for="newUserPass">Contraseña (vacío = aleatoria)</label><input type="text" id="newUserPass" placeholder="Se genera automáticamente si se deja vacío"></div>
                         <div class="field">
                             <label for="newUserRole">Rol</label>
                             <select id="newUserRole" class="select-wide">

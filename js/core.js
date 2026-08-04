@@ -21,6 +21,7 @@ const db_firestore = firebase.firestore();
 const App = {
     fichas: null,          // caché en memoria (null = aún no cargado)
     currentUser: null,
+    pendingChangeUser: null, // usuario que debe cambiar su contraseña antes de entrar
     currentView: 'dashboard',
     currentFichaId: null,
     currentFilter: 'all',

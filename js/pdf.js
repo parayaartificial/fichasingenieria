@@ -96,9 +96,9 @@ function renderPdfContent(f) {
                 <div class="pdf-sec">
                     <h4>Control documental</h4>
                     ${filaControl('Código de seguimiento', f.codigoSeguimiento)}
-                    ${filaControl('Sectorial', f.sectorial)}
-                    ${filaControl('Persona encargada', f.sectorialPersona)}
-                    ${filaControl('Profesional a cargo', f.profesionalCargo)}
+                    ${filaControl('Sector', f.sectorial)}
+                    ${filaControl('Sectorial', f.sectorialPersona)}
+                    ${filaControl('Coordinador', f.profesionalCargo)}
                     ${filaControl('Derivado a', f.derivadoPor)}
                     ${filaControl('Prioridad', f.prioridad ? f.prioridad.charAt(0).toUpperCase() + f.prioridad.slice(1) : '')}
                     ${filaControl('Fecha derivación', f.fechaDerivacion)}
@@ -150,13 +150,13 @@ function renderPdfContent(f) {
                     <div class="pdf-firma">
                         <div class="firma-linea"></div>
                         <strong>${escapeHtml(f.sectorialPersona || '')}</strong>
-                        <span>Sectorial · ${escapeHtml(f.sectorial || '')}</span>
+                        <span>Sector · ${escapeHtml(f.sectorial || '')}</span>
                         ${f.sectorialCorreo ? `<span class="mono">${escapeHtml(f.sectorialCorreo)}</span>` : ''}
                     </div>
                     <div class="pdf-firma">
                         <div class="firma-linea"></div>
                         <strong>${escapeHtml(f.profesionalCargo || '')}</strong>
-                        <span>Profesional a cargo</span>
+                        <span>Coordinador</span>
                     </div>
                     <div class="pdf-firma">
                         <div class="firma-linea"></div>

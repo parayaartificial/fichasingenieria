@@ -127,6 +127,52 @@ function initLogin() {
             return;
         }
         $('#loginError').hidden = true;
+        if (App.pendingChangeUser) {
+            showChangePassScreen();
+        } else {
+            initAppDespuesLogin();
+        }
+    });
+}
+
+/* ---------- Cambio de contraseña (primer ingreso) ---------- */
+function showChangePassScreen() {
+    const u = App.pendingChangeUser;
+    $('#changePassUser').textContent = 'Bienvenido(a) ' + (u.name || u.login) +
+        ' — por seguridad debes cambiar tu contraseña antes de continuar.';
+    $('#changePassNew').value = '';
+    $('#changePassConfirm').value = '';
+    $('#changePassError').hidden = true;
+    $('#loginScreen').hidden = true;
+    $('#changePassScreen').hidden = false;
+    setTimeout(() => $('#changePassNew').focus(), 50);
+}
+
+function initChangePass() {
+    $('#changePassForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const nuevo = $('#changePassNew').value;
+        const conf = $('#changePassConfirm').value;
+        const err = $('#changePassError');
+        if (nuevo.length < 6) {
+            err.textContent = 'La contraseña debe tener al menos 6 caracteres';
+            err.hidden = false;
+            return;
+        }
+        if (nuevo !== conf) {
+            err.textContent = 'Las contraseñas no coinciden';
+            err.hidden = false;
+            return;
+        }
+        const login = App.pendingChangeUser.login;
+        if (!changePassword(login, nuevo)) {
+            err.textContent = 'Error al cambiar la contraseña';
+            err.hidden = false;
+            return;
+        }
+        loginUser(login, nuevo);
+        App.pendingChangeUser = null;
+        showToast('Contraseña actualizada correctamente');
         initAppDespuesLogin();
     });
 }
@@ -137,7 +183,7 @@ function initUserModal() {
         e.preventDefault();
         const nombre = $('#newUserName').value.trim();
         const login = $('#newUserLogin').value.trim();
-        const pass = $('#newUserPass').value.trim();
+        const pass = $('#newUserPass').value.trim() || randomPassword();
         const role = $('#newUserRole').value;
         if (!nombre || !login || !pass) { showToast('Completa todos los campos', 'error'); return; }
         const users = getUsers();
@@ -145,7 +191,12 @@ function initUserModal() {
             showToast('Ese usuario ya existe', 'error');
             return;
         }
-        users.push({ login, pass: hashPassword(pass), name: nombre, role });
+        users.push({
+            login, pass: hashPassword(pass), initPass: pass,
+            name: nombre, role,
+            mustChangePass: true,
+            createdAt: Date.now()
+        });
         saveUsers(users);
         $('#newUserName').value = '';
         $('#newUserLogin').value = '';
@@ -176,6 +227,7 @@ async function initSeccion(n) {
 
 function init() {
     initDefaultUsers();
+    ensureSeedUsers();
     initDatalists();
     initSelectsFormulario();
     initForm();
@@ -187,6 +239,7 @@ function init() {
     initFichaActions();
     initUserMenu();
     initLogin();
+    initChangePass();
     initUserModal();
 
     if (checkSession()) {
