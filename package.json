@@ -1,0 +1,14 @@
+{
+  "name": "informes-ingenieria",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistema de fichas de emergencia - Dirección de Ingeniería Municipal de Concepción",
+  "scripts": {
+    "deploy": "firebase deploy",
+    "deploy:firestore": "firebase deploy --only firestore:rules",
+    "deploy:hosting": "firebase deploy --only hosting"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  }
+}

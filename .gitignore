@@ -17,3 +17,7 @@ Desktop.ini
 .claude/
 skills-lock.json
 nuevo-*.png
+
+# Node / Firebase CLI
+node_modules/
+firebase-debug.log
