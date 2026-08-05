@@ -4,15 +4,13 @@ rules_version = '2';
 // REGLAS DE SEGURIDAD FIRESTORE - Informes de Emergencia
 // Ingeniería Municipal · Concepción
 //
-// ⚠️ ESTADO ACTUAL DE LA APP:
-//   La aplicación autentica usuarios con localStorage (login propio),
-//   NO usa Firebase Authentication. Por eso hoy la colección "fichas"
-//   queda abierta o bloqueada según el modo del proyecto.
-//
-// ✅ PASO PREVIO OBLIGATORIO ANTES DE DESPLEGAR ESTAS REGLAS:
-//   Migrar la autenticación de la app a Firebase Authentication
-//   (email/contraseña). Sin esa migración, estas reglas bloquean
-//   TODO el acceso a los datos.
+// ⚠️ La aplicación autentica usuarios con login propio
+// (localStorage + colección "usuarios"), NO usa Firebase
+// Authentication. Por eso estas reglas permiten leer/escribir
+// a cualquier cliente, con validación de estructura/tamaños.
+// ⚠️ Aviso de seguridad: con esto los datos quedan accesibles
+// para cualquiera que conozca el projectId. Si la app migra a
+// Firebase Authentication, restringir con request.auth.
 //
 // Despliegue con:  firebase deploy --only firestore:rules
 // ============================================================
@@ -22,37 +20,51 @@ service cloud.firestore {
 
     // --- Fichas de emergencia ---------------------------------
     match /fichas/{fichaId} {
-      allow read: if request.auth != null;
+      allow read: if true;
 
-      // Límites de tamaño para evitar agotamiento de recursos (DoS)
+      // Validación laxa (para no rechazar informes antiguos):
+      // limita tamaño y los campos sensibles si están presentes.
       function valido() {
         let d = request.resource.data;
-        return d.sector is string && d.sector.size() <= 200
-          && d.calle is string && d.calle.size() <= 300
-          && d.tipoEmergencia is string && d.tipoEmergencia.size() <= 200
-          && d.nombreAfectado is string && d.nombreAfectado.size() <= 200
-          && d.descripcion is string && d.descripcion.size() <= 20000
-          && d.conclusion is string && d.conclusion.size() <= 20000
-          && d.sectorial is string && d.sectorial.size() <= 100
-          && d.sectorialPersona is string && d.sectorialPersona.size() <= 150
-          && d.profesionalCargo is string && d.profesionalCargo.size() <= 150
-          && d.derivadoPor is string && d.derivadoPor.size() <= 150
-          && d.prioridad in ['', 'alta', 'media', 'baja']
-          && d.ubicacionGeo is string && d.ubicacionGeo.size() <= 2000
-          && d.registroNum is int && d.registroNum > 0 && d.registroNum < 100000
-          && d.codigoSeguimiento is string && d.codigoSeguimiento.size() <= 30;
+        return d is map
+          && d.keys().size() <= 45
+          && (!('registroNum' in d) ||
+              (d.registroNum is int && d.registroNum > 0 && d.registroNum < 100000))
+          && (!('prioridad' in d) || d.prioridad in ['', 'alta', 'media', 'baja'])
+          && (!('sector' in d) || (d.sector is string && d.sector.size() <= 200))
+          && (!('calle' in d) || (d.calle is string && d.calle.size() <= 300))
+          && (!('descripcion' in d) || (d.descripcion is string && d.descripcion.size() <= 50000))
+          && (!('conclusion' in d) || (d.conclusion is string && d.conclusion.size() <= 50000))
+          && (!('ubicacionGeo' in d) || (d.ubicacionGeo is string && d.ubicacionGeo.size() <= 2000))
+          && (!('codigoSeguimiento' in d) || (d.codigoSeguimiento is string && d.codigoSeguimiento.size() <= 30))
+          && (!('imagenesAntes' in d) || (d.imagenesAntes is list && d.imagenesAntes.size() <= 25))
+          && (!('imagenesDespues' in d) || (d.imagenesDespues is list && d.imagenesDespues.size() <= 25))
+          && (!('imagenes' in d) || (d.imagenes is list && d.imagenes.size() <= 25));
       }
 
-      // Al crear: un usuario autenticado puede crear fichas válidas
-      allow create: if request.auth != null && valido();
-
-      // Al actualizar: no se permiten cambios de tipo o tamaño
-      allow update: if request.auth != null
-        && valido()
+      allow create: if valido();
+      allow update: if valido()
         && request.resource.data.keys().hasAll(['id', 'fechaCreacion']);
+      allow delete: if true;
+    }
 
-      allow delete: if request.auth != null
-        && request.auth.uid == resource.data.uid;
+    // --- Usuarios de la app ----------------------------------------
+    match /usuarios/{usuario} {
+      function validoUsuario() {
+        let d = request.resource.data;
+        return d is map
+          && d.keys().size() <= 20
+          && 'login' in d && d.login is string && d.login.size() <= 60
+          && 'name' in d && d.name is string && d.name.size() <= 150
+          && 'role' in d && d.role in ['admin', 'creador', 'editor']
+          && 'pass' in d && d.pass is string && d.pass.size() <= 80
+          && (!('initPass' in d) || (d.initPass is string && d.initPass.size() <= 80));
+      }
+
+      allow read: if true;
+      allow create: if validoUsuario();
+      allow update: if validoUsuario();
+      allow delete: if true;
     }
 
     // --- Negar el resto por defecto ----------------------------

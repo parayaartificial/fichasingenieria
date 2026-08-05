@@ -3,6 +3,7 @@
    ============================================================ */
 
 const ROLE_LABELS = { admin: 'Administrador', creador: 'Creador', editor: 'Editor' };
+const USERS_COL = 'usuarios';
 
 function hashPassword(pass) {
     let hash = 5381;
@@ -17,8 +18,58 @@ function getUsers() {
     catch { return []; }
 }
 
-function saveUsers(users) {
+function saveUsersLocal(users) {
     localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+/* Guarda localmente y propaga a Firestore (mejor esfuerzo). */
+function saveUsers(users) {
+    saveUsersLocal(users);
+    try {
+        const batch = db_firestore.batch();
+        users.forEach(u => batch.set(db_firestore.collection(USERS_COL).doc(u.login), u));
+        withTimeout(batch.commit(), 8000).catch(() => {});
+    } catch (e) { /* sin conexión */ }
+}
+
+/* Fusión con Firestore: el remoto es la fuente de verdad para usuarios ya
+   conocidos; los que solo existen en local se suben para no perderlos. */
+async function cargarUsuariosFirestore() {
+    let remotos = [];
+    try {
+        const snap = await withTimeout(db_firestore.collection(USERS_COL).get(), 10000);
+        snap.forEach(doc => remotos.push(doc.data()));
+    } catch (e) {
+        return getUsers();
+    }
+    const porLogin = new Map(remotos.map(u => [u.login, u]));
+    const locales = getUsers();
+    const subir = [];
+    locales.forEach(u => {
+        if (!porLogin.has(u.login)) { porLogin.set(u.login, u); subir.push(u); }
+    });
+    const fusion = [...porLogin.values()];
+    saveUsersLocal(fusion);
+    if (subir.length) {
+        try {
+            const batch = db_firestore.batch();
+            subir.forEach(u => batch.set(db_firestore.collection(USERS_COL).doc(u.login), u));
+            withTimeout(batch.commit(), 8000).catch(() => {});
+        } catch (e) {}
+    }
+    return fusion;
+}
+
+/* Carga usuarios de Firestore y aplica seed + migración de claves fijas.
+   IMPORTANTE: primero se LEE el remoto (fuente de verdad) y solo si no hay
+   nada se siembran los usuarios por defecto. */
+async function sincronizarUsuarios() {
+    await cargarUsuariosFirestore();
+    initDefaultUsers();
+    ensureSeedUsers();
+    migrarContrasenasFijas();
+    saveUsers(getUsers());
+    return getUsers();
 }
 
 function randomPassword() {
@@ -219,8 +270,12 @@ function renderUsersList() {
     $$('[data-del-user]').forEach(b => {
         b.addEventListener('click', () => {
             if (!confirm(`¿Eliminar al usuario "${b.dataset.delUser}"?`)) return;
-            const users2 = getUsers().filter(u => u.login !== b.dataset.delUser);
+            const borrado = b.dataset.delUser;
+            const users2 = getUsers().filter(u => u.login !== borrado);
             saveUsers(users2);
+            try {
+                withTimeout(db_firestore.collection(USERS_COL).doc(borrado).delete(), 8000).catch(() => {});
+            } catch (e) {}
             renderUsersList();
             renderCredentials();
             showToast('Usuario eliminado');

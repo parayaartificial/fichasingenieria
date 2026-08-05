@@ -118,8 +118,9 @@ function initUserMenu() {
 
 /* ---------- Login ---------- */
 function initLogin() {
-    $('#loginForm').addEventListener('submit', e => {
+    $('#loginForm').addEventListener('submit', async e => {
         e.preventDefault();
+        try { await cargarUsuariosFirestore(); } catch (err) { /* sin conexión */ }
         const ok = loginUser($('#loginUser').value, $('#loginPass').value);
         if (!ok) {
             $('#loginError').textContent = 'Usuario o contraseña incorrectos';
@@ -225,10 +226,7 @@ async function initSeccion(n) {
     }
 }
 
-function init() {
-    initDefaultUsers();
-    ensureSeedUsers();
-    migrarContrasenasFijas();
+async function init() {
     initDatalists();
     initSelectsFormulario();
     initForm();
@@ -242,6 +240,8 @@ function init() {
     initLogin();
     initChangePass();
     initUserModal();
+
+    await sincronizarUsuarios();
 
     if (checkSession()) {
         showApp();

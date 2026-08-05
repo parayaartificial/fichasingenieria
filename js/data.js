@@ -19,8 +19,25 @@ async function loadFichas(opts) {
     let desdeFirestore = false;
     try {
         const snap = await withTimeout(db_firestore.collection('fichas').get(), 10000);
+        const remotoMap = new Map();
+        snap.forEach(doc => remotoMap.set(doc.id, { id: doc.id, ...doc.data() }));
+
+        let localesSolo = [];
+        try { localesSolo = (JSON.parse(localStorage.getItem(STORAGE_KEY)) || [])
+            .filter(f => f && f.id && !remotoMap.has(f.id)); }
+        catch { localesSolo = []; }
+
+        if (localesSolo.length) {
+            try {
+                const batch = db_firestore.batch();
+                localesSolo.forEach(f => batch.set(db_firestore.collection('fichas').doc(f.id), f));
+                await withTimeout(batch.commit(), 10000);
+            } catch (e) { /* sin conexión */ }
+        }
+
         const fichas = [];
-        snap.forEach(doc => fichas.push({ id: doc.id, ...doc.data() }));
+        remotoMap.forEach(f => fichas.push(f));
+        localesSolo.forEach(f => fichas.push(f));
         App.fichas = fichas;
         App.firestoreOk = true;
         desdeFirestore = true;
